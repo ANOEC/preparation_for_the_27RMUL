@@ -1,0 +1,122 @@
+terminal_source: usart1
+software_timer:
+  priority: 45
+  stack_depth: 1024
+SPI:
+  spi1:
+    tx_buffer_size: 32
+    rx_buffer_size: 32
+    dma_section: ''
+    dma_enable_min_size: 32
+USART:
+  usart1:
+    tx_buffer_size: 128
+    rx_buffer_size: 128
+    dma_section: ''
+    tx_queue_size: 5
+CAN:
+  CAN1:
+    queue_size: 5
+  CAN2:
+    queue_size: 5
+Terminal:
+  read_buff_size: 32
+  max_line_size: 32
+  max_arg_number: 5
+  max_history_number: 5
+  run_as_thread: false
+SYSTEM: FreeRTOS
+device_aliases:
+  ACCEL_CS:
+    type: GPIO
+    aliases:
+    - ACCEL_CS
+    - bmi088_accl_cs
+  GYRO_CS:
+    type: GPIO
+    aliases:
+    - GYRO_CS
+    - bmi088_gyro_cs
+  GYRO_INT:
+    type: GPIO
+    aliases:
+    - GYRO_INT
+    - bmi088_gyro_int
+  LED:
+    type: GPIO
+    aliases:
+    - LED
+  pwm_tim10_ch1:
+    type: PWM
+    aliases:
+    - BMI088_HEAT
+    - pwm_bmi088_heat
+    - pwm_tim10_ch1
+  spi1:
+    type: SPI
+    aliases:
+    - SPI1
+    - spi1
+    - spi_bmi088
+  usart1:
+    type: UART
+    aliases:
+    - USART1
+    - usart1
+  power_manager:
+    type: PowerManager
+    aliases:
+    - power_manager
+  ramfs:
+    type: RamFS
+    aliases:
+    - ramfs
+  terminal:
+    type: Terminal<32, 32, 5, 5>
+    aliases:
+    - terminal
+  can2:
+    type: CAN
+    aliases:
+    - can2
+FlashLayout:
+  model: STM32F407IGH6
+  flash_base: '0x08000000'
+  flash_size_kb: 1024
+  sectors:
+  - index: 0
+    address: '0x08000000'
+    size_kb: 16.0
+  - index: 1
+    address: '0x08004000'
+    size_kb: 16.0
+  - index: 2
+    address: '0x08008000'
+    size_kb: 16.0
+  - index: 3
+    address: '0x0800C000'
+    size_kb: 16.0
+  - index: 4
+    address: '0x08010000'
+    size_kb: 64.0
+  - index: 5
+    address: '0x08020000'
+    size_kb: 128.0
+  - index: 6
+    address: '0x08040000'
+    size_kb: 128.0
+  - index: 7
+    address: '0x08060000'
+    size_kb: 128.0
+  - index: 8
+    address: '0x08080000'
+    size_kb: 128.0
+  - index: 9
+    address: '0x080A0000'
+    size_kb: 128.0
+  - index: 10
+    address: '0x080C0000'
+    size_kb: 128.0
+  - index: 11
+    address: '0x080E0000'
+    size_kb: 128.0

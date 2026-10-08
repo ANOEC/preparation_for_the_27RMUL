@@ -1,0 +1,11 @@
+namespace: scu-hotpot
+modules:
+  - git@codeup.aliyun.com:68b19cda479007fe862e43ec/control_common/CanManager.git
+  - git@codeup.aliyun.com:68b19cda479007fe862e43ec/control_common/DJIMotor.git
+  - git@codeup.aliyun.com:68b19cda479007fe862e43ec/control_common/DMMotor.git
+  - git@codeup.aliyun.com:68b19cda479007fe862e43ec/control_common/LKMotor.git
+  - git@codeup.aliyun.com:68b19cda479007fe862e43ec/control_common/VQFModule.git
+  - git@codeup.aliyun.com:68b19cda479007fe862e43ec/control_common/BMI088.git
+  - git@codeup.aliyun.com:68b19cda479007fe862e43ec/control_common/RTTLogger.git
+  - git@codeup.aliyun.com:68b19cda479007fe862e43ec/control_common/RemoteControl.git
+  - git@codeup.aliyun.com:68b19cda479007fe862e43ec/control_common/BtoBOnCan.git

@@ -1,0 +1,6 @@
+modules:
+- xrobot-org/BlinkLED@master
+- scu-hotpot/BMI088@main
+- scu-hotpot/VQFModule@main
+- scu-hotpot/CanManager
+- scu-hotpot/DJIMotor

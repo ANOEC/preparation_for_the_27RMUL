@@ -1,0 +1,102 @@
+global_settings:
+  monitor_sleep_ms: 1000
+modules:
+- id: BlinkLED_0
+  name: BlinkLED
+  constructor_args:
+    blink_cycle: 250
+- id: pitch_motor
+  name: DJIMotor
+  constructor_args:
+    id: 1
+    type: DJIMotor::MotorType::GM6020
+    actual_total_ratio: 1.0
+    init_pos_degree: 0.0
+    topic_name: pitch_motor_feedback
+    torque_topic_name: pitch_motor_torque_command
+    command_timeout_ms: 100
+- id: yaw_motor
+  name: DJIMotor
+  constructor_args:
+    id: 2
+    type: DJIMotor::MotorType::GM6020
+    actual_total_ratio: 1.0
+    init_pos_degree: 0.0
+    topic_name: yaw_motor_feedback
+    torque_topic_name: yaw_motor_torque_command
+    command_timeout_ms: 100
+- id: can_manager
+  name: CanManager
+  constructor_args:
+    can_buses:
+      - can_alias: can2
+        frame_kind: Module::CanManager::FrameKind::CLASSIC
+        devices:
+          - {expr: "&pitch_motor"}
+          - {expr: "&yaw_motor"}
+    period_ms: 1
+    task_stack_depth: 2048
+    task_priority: LibXR::Thread::Priority::HIGH
+    start_thread: true
+- id: VQFModule_0
+  name: VQFModule
+  template_args:
+    scalar_type: float
+  constructor_args:
+    accelerometer_topic_name: bmi088_accl
+    gyroscope_topic_name: bmi088_gyro
+    output_topic_name: vqf_output
+    sampling_period_seconds: 0.0005
+    vqf_params:
+      tauAcc: 3.0
+      tauMag: 9.0
+      motionBiasEstEnabled: true
+      restBiasEstEnabled: true
+      magDistRejectionEnabled: true
+      biasSigmaInit: 0.5
+      biasForgettingTime: 100.0
+      biasClip: 2.0
+      biasSigmaMotion: 0.1
+      biasVerticalForgettingFactor: 0.0001
+      biasSigmaRest: 0.03
+      restMinT: 1.5
+      restFilterTau: 0.5
+      restThGyr: 2.0
+      restThAcc: 0.5
+      magCurrentTau: 0.05
+      magRefTau: 20.0
+      magNormTh: 0.1
+      magDipTh: 10.0
+      magNewTime: 20.0
+      magNewFirstTime: 5.0
+      magNewMinGyr: 20.0
+      magMinUndisturbedTime: 0.5
+      magMaxRejectionTime: 60.0
+      magRejectionFactor: 2.0
+    input_queue_depth: 16
+    task_stack_depth: 4096
+    task_priority: LibXR::Thread::Priority::HIGH
+- id: BMI088_0
+  name: BMI088
+  constructor_args:
+    gyro_freq: BMI088::GyroFreq::GYRO_2000HZ_BW532HZ
+    accl_freq: BMI088::AcclFreq::ACCL_1600HZ
+    gyro_range: BMI088::GyroRange::DEG_2000DPS
+    accl_range: BMI088::AcclRange::ACCL_24G
+    rotation:
+      w: 1.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    pid_param:
+      k: 1.0
+      p: 0.0
+      i: 0.0
+      d: 0.0
+      i_limit: 0.0
+      out_limit: 0.0
+      cycle: false
+    gyro_topic_name: bmi088_gyro
+    accl_topic_name: bmi088_accl
+    target_temperature: 45
+    task_stack_depth: 2048
