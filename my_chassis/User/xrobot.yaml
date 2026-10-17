@@ -1,0 +1,131 @@
+constexpr_includes: []
+
+modules:
+  - module: scu-hotpot/RTTLogger
+    id: rtt_logger
+    args: []
+
+  - module: scu-hotpot/BMI088
+    id: bmi088
+    args:
+      - spi: spi2
+      - cs_accl: BMI088_ACCEL_CS
+      - cs_gyro: BMI088_GYRO_CS
+      - int_gyro: BMI088_GYRO_INT
+      - pwm: pwm_tim3_ch4
+      - freq: BMI088::GyroFreq::GYRO_2000HZ_BW230HZ
+      - accl_freq: BMI088::AcclFreq::ACCL_1600HZ
+      - gyro_range: BMI088::GyroRange::DEG_2000DPS
+      - accl_range: BMI088::AcclRange::ACCL_6G
+      - rotation: '{1.0f, 0.0f, 0.0f, 0.0f}'
+      - pid_param:
+          k: 1.0f
+          p: 0.0f
+          i: 0.0f
+          d: 0.0f
+          i_limit: 0.0f
+          out_limit: 0.0f
+          cycle: false
+      - gyro_topic_name: "bmi088_gyro"
+      - accl_topic_name: "bmi088_accl"
+      - target_temperature: 50.0f
+      - task_stack_depth: 2048
+  - module: scu-hotpot/DJIMotor
+    id: chassis_motor1
+    args:
+      - id: 1
+      - type: DJIMotor::MotorType::M3508
+      - actual_total_ratio: 19.0f
+      - init_pos_degree: 0.0f
+      - topic_name: "/fb/motor/chassis_motor1"
+      - torque_topic_name: "/torque/chassis_motor1"
+      - command_timeout_ms: 100
+  - module: scu-hotpot/DJIMotor
+    id: chassis_motor2
+    args:
+      - id: 2
+      - type: DJIMotor::MotorType::M3508
+      - actual_total_ratio: 19.0f
+      - init_pos_degree: 0.0f
+      - topic_name: "/fb/motor/chassis_motor2"
+      - torque_topic_name: "/torque/chassis_motor2"
+      - command_timeout_ms: 100
+  - module: scu-hotpot/DJIMotor
+    id: chassis_motor3
+    args:
+      - id: 3
+      - type: DJIMotor::MotorType::M3508
+      - actual_total_ratio: 19.0f
+      - init_pos_degree: 0.0f
+      - topic_name: "/fb/motor/chassis_motor3"
+      - torque_topic_name: "/torque/chassis_motor3"
+      - command_timeout_ms: 100
+  - module: scu-hotpot/DJIMotor
+    id: chassis_motor4
+    args:
+      - id: 4
+      - type: DJIMotor::MotorType::M3508
+      - actual_total_ratio: 19.0f
+      - init_pos_degree: 0.0f
+      - topic_name: "/fb/motor/chassis_motor4"
+      - torque_topic_name: "/torque/chassis_motor4"
+      - command_timeout_ms: 100
+  - module: scu-hotpot/CanManager
+    id: can_manager
+    args:
+      - can_buses: '{CanManager::CANBus::Classic(fdcan2, {&chassis_motor1, &chassis_motor2, &chassis_motor3, &chassis_motor4}, "fdcan2")}'
+      - period_ms: 1
+      - task_stack_depth: 1024
+      - task_priority: LibXR::Thread::Priority::HIGH
+      - start_thread: true
+  - module: scu-hotpot/RemoteControl
+    id: remote
+    template_args:
+      - Module::Remote::DT7::Remote
+    args:
+      - sbus_uart: uart5
+      - topic_name: "/remote"
+      - thread_stack: 1024
+      - priority: LibXR::Thread::Priority::MEDIUM
+  - module: scu-hotpot/VQFModule
+    id: vqf
+    template_args:
+      - float
+    args:
+      - accelerometer_topic_name: "bmi088_accl"
+      - gyroscope_topic_name: "bmi088_gyro"
+      - output_topic_name: "vqf_output"
+      - sampling_period_seconds: float(0.0005)
+      - vqf_params:
+          tauAcc: float(3.0)
+          tauMag: float(9.0)
+          motionBiasEstEnabled: true
+          restBiasEstEnabled: true
+          magDistRejectionEnabled: true
+          biasSigmaInit: float(0.5)
+          biasForgettingTime: float(100.0)
+          biasClip: float(2.0)
+          biasSigmaMotion: float(0.1)
+          biasVerticalForgettingFactor: float(0.0001)
+          biasSigmaRest: float(0.03)
+          restMinT: float(1.5)
+          restFilterTau: float(0.5)
+          restThGyr: float(2.0)
+          restThAcc: float(0.5)
+          magCurrentTau: float(0.05)
+          magRefTau: float(20.0)
+          magNormTh: float(0.1)
+          magDipTh: float(10.0)
+          magNewTime: float(20.0)
+          magNewFirstTime: float(5.0)
+          magNewMinGyr: float(20.0)
+          magMinUndisturbedTime: float(0.5)
+          magMaxRejectionTime: float(60.0)
+          magRejectionFactor: float(2.0)
+      - input_queue_depth: 16
+      - task_stack_depth: 4096
+      - task_priority: LibXR::Thread::Priority::HIGH
+      - start_thread: true
+
+settings:
+  monitor_sleep_ms: 500

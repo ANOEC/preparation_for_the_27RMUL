@@ -1,0 +1,6 @@
+build
+mx.scratch
+!.settings
+/User/xrobot_main.hpp
+/Modules/CMakeLists.txt
+/Modules/*/

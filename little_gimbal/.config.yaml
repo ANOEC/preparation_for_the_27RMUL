@@ -1,0 +1,136 @@
+GPIO:
+  PA4:
+    Label: ACCEL_CS
+    Signal: GPIO_Output
+  PB0:
+    Label: GYRO_CS
+    Signal: GPIO_Output
+  PC5:
+    Label: GYRO_INT
+    Signal: GPXTI5
+    GPXTI: true
+  PH10:
+    Label: LED
+    Pull: GPIO_PULLDOWN
+    Signal: GPIO_Output
+Peripherals:
+  TIM:
+    TIM10:
+      Channels:
+        CH1:
+          Label: BMI088_HEAT
+          PWM: true
+          Complementary: false
+  ADC: {}
+  SPI:
+    SPI1:
+      BaudRate: 5.25 MBits/s
+      Direction: SPI_DIRECTION_2LINES
+      dma:
+        dma_rx: &id001
+          request_id: '0'
+          peripheral: SPI1_RX
+          dma_type: DMA
+          stream: DMA2_Stream0
+          direction: MEMORY
+          periph_inc: false
+          mem_inc: false
+          periph_align: byte
+          mem_align: byte
+          mode: Normal
+          priority: Low
+          fifo: Disabled
+          direction_full: periph_to_memory
+        dma_tx: &id002
+          request_id: '1'
+          peripheral: SPI1_TX
+          dma_type: DMA
+          stream: DMA2_Stream3
+          direction: PERIPH
+          periph_inc: false
+          mem_inc: false
+          periph_align: byte
+          mem_align: byte
+          mode: Normal
+          priority: Low
+          fifo: Disabled
+          direction_full: memory_to_periph
+      DMA_RX: ENABLE
+      DMA_RX_TYPE: DMA
+      DMA_TX: ENABLE
+      DMA_TX_TYPE: DMA
+  USART:
+    USART1:
+      Mode: Asynchronous
+      dma:
+        dma_rx: &id003
+          request_id: '2'
+          peripheral: USART1_RX
+          dma_type: DMA
+          stream: DMA2_Stream2
+          direction: MEMORY
+          periph_inc: false
+          mem_inc: false
+          periph_align: byte
+          mem_align: byte
+          mode: Normal
+          priority: Low
+          fifo: Disabled
+          direction_full: periph_to_memory
+        dma_tx: &id004
+          request_id: '3'
+          peripheral: USART1_TX
+          dma_type: DMA
+          stream: DMA2_Stream7
+          direction: PERIPH
+          periph_inc: false
+          mem_inc: false
+          periph_align: byte
+          mem_align: byte
+          mode: Normal
+          priority: Low
+          fifo: Disabled
+          direction_full: memory_to_periph
+      DMA_RX: ENABLE
+      DMA_RX_TYPE: DMA
+      DMA_TX: ENABLE
+      DMA_TX_TYPE: DMA
+  CAN:
+    CAN2:
+      BaudRate: '1000000'
+      TimeSeg1: CAN_BS1_3TQ
+      TimeSeg2: CAN_BS2_3TQ
+      AutoRetransmission: false
+      AutoWakeup: false
+  I2C: {}
+DMA:
+  Requests:
+    Dma.Request0: SPI1_RX
+    Dma.Request1: SPI1_TX
+    Dma.Request2: USART1_RX
+    Dma.Request3: USART1_TX
+  Configurations:
+    SPI1_RX_0: *id001
+    SPI1_TX_1: *id002
+    USART1_RX_2: *id003
+    USART1_TX_3: *id004
+Timebase:
+  Source: TIM6
+  IRQ: TIM6_DAC_IRQn
+Mcu:
+  Family: STM32F4
+  Type: STM32F407IGH6
+FreeRTOS:
+  RTOS: FreeRTOS
+  Enabled: true
+  AllocationMethod: null
+  MemPoolSize: null
+  CorePresent: null
+  Tasks:
+    defaultTask:
+      Priority: '24'
+      StackSize: 2048B
+      EntryFunction: StartDefaultTask
+      Type: Default
+  Heap: null
+  Features: []

@@ -1,0 +1,6 @@
+[submodule "Middlewares/Third_Party/LibXR"]
+	path = Middlewares/Third_Party/LibXR
+	url = https://github.com/xrobot-org/libxr.git
+[submodule "lib/libht"]
+	path = lib/libht
+	url = git@codeup.aliyun.com:68b19cda479007fe862e43ec/control_common/LibHT.git

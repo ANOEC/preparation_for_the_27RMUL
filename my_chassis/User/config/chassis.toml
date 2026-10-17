@@ -1,0 +1,104 @@
+[[default.pid]]
+kp = 0.0
+ki = 0.0
+kd = 0.0
+error_threshold = 0.0
+integral_limit = 0.0
+max_output = 0.0
+
+[[pid.motor1]]
+kp = 0.1
+max_output = 6.0
+
+[[pid.motor2]]
+kp = 0.1
+max_output = 6.0
+
+[[pid.motor3]]
+kp = 0.1
+max_output = 6.0
+
+[[pid.motor4]]
+kp = 0.1
+max_output = 6.0
+
+# 底盘方向跟随云台方向
+[[pid.follow]]
+kp = -6.0
+kd = -4.0
+max_output = 8.0
+
+# 控制底盘在 X 方向的平移速度
+[[pid.x]]
+kp = 2.5
+max_output = 10.0
+
+# 控制底盘在 Y 方向的平移速度
+[[pid.y]]
+kp = 2.5
+max_output = 10.0
+
+# 控制底盘绕竖直 Z 轴的旋转角速度
+[[pid.z]]
+kp = 2.5
+max_output = 10.0
+
+# A = √(vx² + vy²) 底盘平移速度的大小
+[[pid.a]]
+kp = 2.5
+max_output = 10.0
+
+[[imu]]
+offset_x = 0.0 # IMU 相对底盘旋转中心/重心，在 X 方向上的安装偏移，单位通常是米
+offset_y = 0.1855 # IMU 相对底盘中心，在 Y 方向上的安装偏移，通常单位为米
+horizontal_shift = 0.0 # IMU 水平安装方向相对底盘坐标系的偏航角误差，单位是度
+constant_temperature = 50.0 # IMU 恒温控制的目标温度，单位通常是摄氏度
+# IMU 三个轴的角速度平滑与角加速度估计器参数
+w01 = 50.0 # X 轴陀螺仪
+w02 = 50.0 # Y 轴陀螺仪
+w03 = 50.0 # Z 轴陀螺仪
+variable = "n" # 组参数生成为编译期只读常量
+
+# 机械参数
+[[param]]
+omni_wheel_r = 0.07697 # 驱动全向轮半径，单位是米
+steering_wheel_r = 0.061 # 参考车舵轮半径；当前全向轮底盘暂不参与解算
+car_length = 0.37335238 # 底盘长度，单位是米
+car_wide = 0.37335238 # 底盘宽度，单位是米
+car_r = 0.264 # 底盘中心到轮子作用位置的等效旋转半径，单位是米
+
+# 快速刹车
+brake_x = 2.0 # X 方向刹车减速度/制动强度，m/s^2
+brake_y = 2.0 # Y 方向刹车减速度/制动强度，m/s^2
+
+translation_acceleration = 10.5 # 正常平移运动时的加速度上限，m/s^2
+sprint_acceleration = 21.0 # 进入冲刺状态后的平移加速度上限，m/s^2
+sprint_activation_speed = 1.5 # 平移速度指令模长超过该值时启用冲刺加速度，m/s
+
+yaw_acceleration = 700.0 # 底盘角速度指令的变化率上限，即旋转加速度限制，rad/s^2
+
+quick_brake_acceleration = 105.0 # 快速刹车时目标平移速度的减速度/斜坡变化率，m/s^2
+quick_brake_command_delta = 0.1 # 平移速度指令一次下降超过该值时，可触发快速刹车，m/s
+quick_brake_release_speed = 0.1 # 实际平移速度低于该值时退出快速刹车状态，m/s
+
+# 底盘宽度和长度的机械修正量
+width_bias = 0.0
+length_bias = 0.0
+steering_k1 = 0.321948 # 参考车舵轮机构参数；保留以与参考参数表一致
+steering_k2 = 10.657181
+steering_k3 = 1.732831
+car_weight = 23.0 # 整车质量，通常单位是千克
+car_height = 0.0656 # 底盘重心高度，单位通常是米
+
+# 小陀螺变速参数，三个叠加正弦波的周期，单位为秒
+chassis_sin_period1 = 0.5
+chassis_sin_period2 = 0.3
+chassis_sin_period3 = 0.13
+
+# 倾斜和翻车保护角度
+turn_over_angle = 45.0
+turn_over_free_angle = 20.0
+stop_spin_angle = 12.0
+slope_angle = 8.0
+
+variable = "n" # 组参数生成为编译期只读常量

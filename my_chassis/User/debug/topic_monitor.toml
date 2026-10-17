@@ -1,0 +1,77 @@
+[[topic]]
+id = "remote"
+name = "/remote"
+type = "RemoteData"
+printer = "PrintRemote"
+
+[[topic]]
+id = "chassis_command"
+name = "/cmd/chassis"
+type = "ChassisCommand"
+printer = "PrintChassisCommand"
+
+[[topic]]
+id = "motor_1"
+name = "/fb/motor/chassis_motor1"
+type = "MotorFeedback"
+printer = "PrintMotorFeedback"
+
+[[topic]]
+id = "motor_2"
+name = "/fb/motor/chassis_motor2"
+type = "MotorFeedback"
+printer = "PrintMotorFeedback"
+
+[[topic]]
+id = "motor_3"
+name = "/fb/motor/chassis_motor3"
+type = "MotorFeedback"
+printer = "PrintMotorFeedback"
+
+[[topic]]
+id = "motor_4"
+name = "/fb/motor/chassis_motor4"
+type = "MotorFeedback"
+printer = "PrintMotorFeedback"
+
+[[topic]]
+id = "gyro"
+name = "bmi088_gyro"
+type = "ImuVector"
+printer = "PrintImuVector"
+
+[[topic]]
+id = "accel"
+name = "bmi088_accl"
+type = "ImuVector"
+printer = "PrintImuVector"
+
+[[topic]]
+id = "vqf_output"
+name = "vqf_output"
+type = "VqfOutputData"
+printer = "PrintVqfOutput"
+
+[[topic]]
+id = "torque_1"
+name = "/torque/chassis_motor1"
+type = "float"
+printer = "PrintTorque"
+
+[[topic]]
+id = "torque_2"
+name = "/torque/chassis_motor2"
+type = "float"
+printer = "PrintTorque"
+
+[[topic]]
+id = "torque_3"
+name = "/torque/chassis_motor3"
+type = "float"
+printer = "PrintTorque"
+
+[[topic]]
+id = "torque_4"
+name = "/torque/chassis_motor4"
+type = "float"
+printer = "PrintTorque"
