@@ -1,0 +1,22 @@
+namespace: scu-hotpot
+modules:
+  - id: scu-hotpot/BMI088
+    repo: "git@codeup.aliyun.com:68b19cda479007fe862e43ec/control_common/BMI088.git"
+  - id: scu-hotpot/BtoBOnCan
+    repo: "git@codeup.aliyun.com:68b19cda479007fe862e43ec/control_common/BtoBOnCan.git"
+  - id: scu-hotpot/CanManager
+    repo: "git@codeup.aliyun.com:68b19cda479007fe862e43ec/control_common/CanManager.git"
+  - id: scu-hotpot/DJIMotor
+    repo: "git@codeup.aliyun.com:68b19cda479007fe862e43ec/control_common/DJIMotor.git"
+  - id: scu-hotpot/DMMotor
+    repo: "git@codeup.aliyun.com:68b19cda479007fe862e43ec/control_common/DMMotor.git"
+  - id: scu-hotpot/LKMotor
+    repo: "git@codeup.aliyun.com:68b19cda479007fe862e43ec/control_common/LKMotor.git"
+  - id: scu-hotpot/RTTLogger
+    repo: "git@codeup.aliyun.com:68b19cda479007fe862e43ec/control_common/RTTLogger.git"
+  - id: scu-hotpot/RefereeSystem
+    repo: "git@codeup.aliyun.com:68b19cda479007fe862e43ec/control_common/RefereeSystem.git"
+  - id: scu-hotpot/RemoteControl
+    repo: "git@codeup.aliyun.com:68b19cda479007fe862e43ec/control_common/RemoteControl.git"
+  - id: scu-hotpot/VQFModule
+    repo: "git@codeup.aliyun.com:68b19cda479007fe862e43ec/control_common/VQFModule.git"

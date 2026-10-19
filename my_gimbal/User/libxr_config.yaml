@@ -1,0 +1,14 @@
+generator: 6.0.0
+terminal_source: ''
+software_timer:
+  priority: 2
+  stack_depth: 1024
+Terminal:
+  read_buff_size: 32
+  max_line_size: 32
+  max_arg_number: 5
+  max_history_number: 5
+database:
+  enable: false
+  block_size: auto
+SYSTEM: FreeRTOS

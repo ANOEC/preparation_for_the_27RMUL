@@ -66,3 +66,19 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
 
     # Add user defined libraries
 )
+
+# Add LibHT dependencies required by XRobot modules
+set(LIBHT_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/lib/libht")
+
+add_subdirectory(
+    "${LIBHT_ROOT}/utility/serialization"
+    "${CMAKE_BINARY_DIR}/LibHT/serialization"
+)
+
+add_subdirectory(
+    "${LIBHT_ROOT}/utility/crc"
+    "${CMAKE_BINARY_DIR}/LibHT/crc"
+)
+
+# Add LibXR
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/LibXR.CMake)
