@@ -1,0 +1,6 @@
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/system/freertos/semaphore.cpp:8:1:LibXR::Semaphore::Semaphore(uint32_t)	8	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/system/freertos/semaphore.cpp:14:1:LibXR::Semaphore::~Semaphore()	8	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/system/freertos/semaphore.cpp:16:6:void LibXR::Semaphore::Post()	0	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/system/freertos/semaphore.cpp:18:11:LibXR::ErrorCode LibXR::Semaphore::Wait(uint32_t)	8	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/system/freertos/semaphore.cpp:30:6:void LibXR::Semaphore::PostFromCallback(bool)	16	static,ignoring_inline_asm
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/system/freertos/semaphore.cpp:44:8:size_t LibXR::Semaphore::Value()	0	static

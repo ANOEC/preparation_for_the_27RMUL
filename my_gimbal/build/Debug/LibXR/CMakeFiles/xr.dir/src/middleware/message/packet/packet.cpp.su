@@ -1,0 +1,7 @@
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/core/libxr_cb.hpp:144:15:) [with Args = {const char*, long unsigned int}]	0	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/middleware/message/packet/packet.cpp:8:6:void LibXR::Topic::PackedDataHeader::SetDataLen(uint32_t)	0	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/middleware/message/packet/packet.cpp:15:10:uint32_t LibXR::Topic::PackedDataHeader::GetDataLen() const	0	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/middleware/message/packet/packet.cpp:22:6:void LibXR::Topic::PackedDataHeader::SetTimestamp(LibXR::MicrosecondTimestamp)	16	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/middleware/message/packet/packet.cpp:32:22:LibXR::MicrosecondTimestamp LibXR::Topic::PackedDataHeader::GetTimestamp() const	16	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/middleware/message/packet/packet.cpp:42:6:static void LibXR::Topic::PackBytes(uint32_t, LibXR::RawData, LibXR::MicrosecondTimestamp, LibXR::ConstRawData)	32	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/middleware/message/packet/packet.cpp:63:1:cpp)	0	static

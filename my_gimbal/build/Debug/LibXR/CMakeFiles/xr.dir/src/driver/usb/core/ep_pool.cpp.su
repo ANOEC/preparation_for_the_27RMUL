@@ -1,0 +1,10 @@
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/core/libxr_cb.hpp:144:15:) [with Args = {const char*, long unsigned int}]	0	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/driver/usb/core/ep_pool.cpp:5:1:LibXR::USB::EndpointPool::EndpointPool(size_t)	16	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/driver/usb/core/ep_pool.cpp:7:18:LibXR::ErrorCode LibXR::USB::EndpointPool::Put(LibXR::USB::Endpoint*)	4	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/driver/usb/core/ep_pool.cpp:52:18:LibXR::ErrorCode LibXR::USB::EndpointPool::Get(LibXR::USB::Endpoint*&, LibXR::USB::Endpoint::Direction, LibXR::USB::Endpoint::EPNumber)	16	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/driver/usb/core/ep_pool.cpp:93:18:LibXR::ErrorCode LibXR::USB::EndpointPool::Release(LibXR::USB::Endpoint*)	8	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/driver/usb/core/ep_pool.cpp:119:18:LibXR::ErrorCode LibXR::USB::EndpointPool::FindEndpoint(uint8_t, LibXR::USB::Endpoint*&)	24	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/driver/usb/core/ep_pool.cpp:156:11:LibXR::USB::Endpoint* LibXR::USB::EndpointPool::GetEndpoint0Out()	0	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/driver/usb/core/ep_pool.cpp:158:11:LibXR::USB::Endpoint* LibXR::USB::EndpointPool::GetEndpoint0In()	0	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/driver/usb/core/ep_pool.cpp:160:6:void LibXR::USB::EndpointPool::SetEndpoint0(LibXR::USB::Endpoint*, LibXR::USB::Endpoint*)	0	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/driver/usb/core/ep_pool.cpp:164:1:cpp)	0	static

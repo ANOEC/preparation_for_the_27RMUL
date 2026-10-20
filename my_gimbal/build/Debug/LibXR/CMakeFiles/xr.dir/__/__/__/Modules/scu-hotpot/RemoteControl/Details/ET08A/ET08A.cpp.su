@@ -1,0 +1,1 @@
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Modules/scu-hotpot/RemoteControl/Details/ET08A/ET08A.cpp:8:23:Module::Remote::ET08A::Remote::ProcessedType Module::Remote::ET08A::Remote::SBUSToRC(LibXR::SPSCQueue<std::byte>&)	144	static,ignoring_inline_asm

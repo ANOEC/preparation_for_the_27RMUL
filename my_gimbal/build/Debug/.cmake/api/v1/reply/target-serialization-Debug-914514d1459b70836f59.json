@@ -1,0 +1,41 @@
+{
+	"abstract" : true,
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_library"
+		],
+		"files" : 
+		[
+			"lib/libht/utility/serialization/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 9,
+				"parent" : 0
+			}
+		]
+	},
+	"codemodelVersion" : 
+	{
+		"major" : 2,
+		"minor" : 10
+	},
+	"id" : "serialization::@ca11e49372bbea32b812",
+	"name" : "serialization",
+	"paths" : 
+	{
+		"build" : "LibHT/serialization",
+		"source" : "lib/libht/utility/serialization"
+	},
+	"sources" : [],
+	"type" : "INTERFACE_LIBRARY"
+}

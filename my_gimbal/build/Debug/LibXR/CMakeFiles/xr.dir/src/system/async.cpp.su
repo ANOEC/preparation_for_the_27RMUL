@@ -1,0 +1,9 @@
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/core/libxr_cb.hpp:144:15:) [with Args = {const char*, long unsigned int}]	0	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/core/libxr_cb.hpp:144:15:) [with Args = {LibXR::ASync*}]	0	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/system/freertos/thread.hpp:75:19:static void LibXR::Thread::Create(ArgType, void (*)(ArgType), const char*, size_t, Priority)::ThreadBlock::Port(void*) [with ArgType = LibXR::ASync*]	8	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/system/async.cpp:55:6:static void LibXR::ASync::ThreadFun(LibXR::ASync*)	8	static,ignoring_inline_asm
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/system/async.cpp:7:1:LibXR::ASync::ASync(size_t, LibXR::Thread::Priority)	24	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/system/async.cpp:28:11:LibXR::ErrorCode LibXR::ASync::AssignJob(Job)	8	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/system/async.cpp:30:11:LibXR::ErrorCode LibXR::ASync::AssignJobFromCallback(Job, bool)	8	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/system/async.cpp:49:6:void LibXR::ASync::RunJob()	8	static,ignoring_inline_asm
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/system/async.cpp:64:1:cpp)	0	static

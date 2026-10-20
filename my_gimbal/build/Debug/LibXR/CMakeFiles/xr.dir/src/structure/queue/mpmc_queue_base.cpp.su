@@ -1,0 +1,9 @@
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/structure/queue/mpmc_queue_base.cpp:15:1:LibXR::MPMCQueueBase::MPMCQueueBase(size_t, size_t)	16	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/structure/queue/mpmc_queue_base.cpp:44:1:LibXR::MPMCQueueBase::~MPMCQueueBase()	8	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/structure/queue/mpmc_queue_base.cpp:54:11:LibXR::ErrorCode LibXR::MPMCQueueBase::PushBytes(const void*)	24	static,ignoring_inline_asm
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/structure/queue/mpmc_queue_base.cpp:96:11:LibXR::ErrorCode LibXR::MPMCQueueBase::PopBytes(void*)	24	static,ignoring_inline_asm
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/structure/queue/mpmc_queue_base.cpp:139:8:size_t LibXR::MPMCQueueBase::Size() const	0	static,ignoring_inline_asm
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/structure/queue/mpmc_queue_base.cpp:151:7:void* LibXR::MPMCQueueBase::PayloadPtr(size_t)	0	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/structure/queue/mpmc_queue_base.cpp:161:13:const void* LibXR::MPMCQueueBase::PayloadPtr(size_t) const	0	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/structure/queue/mpmc_queue_base.cpp:171:8:static size_t LibXR::MPMCQueueBase::AlignUpChecked(size_t, size_t)	16	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/structure/queue/mpmc_queue_base.cpp:184:8:static size_t LibXR::MPMCQueueBase::MultiplyChecked(size_t, size_t)	16	static

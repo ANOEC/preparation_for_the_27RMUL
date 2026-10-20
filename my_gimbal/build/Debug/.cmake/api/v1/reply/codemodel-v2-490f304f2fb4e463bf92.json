@@ -1,0 +1,423 @@
+{
+	"configurations" : 
+	[
+		{
+			"abstractTargets" : 
+			[
+				{
+					"directoryIndex" : 4,
+					"id" : "BtoBOnCan_deps::@850e5864e66a5e4b3cf6",
+					"jsonFile" : "target-BtoBOnCan_deps-Debug-166f5bc2e2a1604a0171.json",
+					"name" : "BtoBOnCan_deps",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "CanManager_deps::@850e5864e66a5e4b3cf6",
+					"jsonFile" : "target-CanManager_deps-Debug-eb528f0af749677e52ac.json",
+					"name" : "CanManager_deps",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "DJIMotor_deps::@850e5864e66a5e4b3cf6",
+					"jsonFile" : "target-DJIMotor_deps-Debug-223940c3887c39d5801b.json",
+					"name" : "DJIMotor_deps",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "DMMotor_deps::@850e5864e66a5e4b3cf6",
+					"jsonFile" : "target-DMMotor_deps-Debug-bbbe5b38bcd2194c82e3.json",
+					"name" : "DMMotor_deps",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "LKMotor_deps::@850e5864e66a5e4b3cf6",
+					"jsonFile" : "target-LKMotor_deps-Debug-6b33e0030f36b43ef629.json",
+					"name" : "LKMotor_deps",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "Python3::Interpreter::@850e5864e66a5e4b3cf6",
+					"jsonFile" : "target-Python3__Interpreter-Debug-1796e0216454bb2bd2db.json",
+					"name" : "Python3::Interpreter",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "Python3::InterpreterMultiConfig::@850e5864e66a5e4b3cf6",
+					"jsonFile" : "target-Python3__InterpreterMultiConfig-Debug-04f7ad49995337c53ef4.json",
+					"name" : "Python3::InterpreterMultiConfig",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "RTTLogger_deps::@850e5864e66a5e4b3cf6",
+					"jsonFile" : "target-RTTLogger_deps-Debug-b0b261f003e634fd27b2.json",
+					"name" : "RTTLogger_deps",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "RefereeSystem_deps::@850e5864e66a5e4b3cf6",
+					"jsonFile" : "target-RefereeSystem_deps-Debug-ba86f982fc38ca88596f.json",
+					"name" : "RefereeSystem_deps",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "RemoteControl_deps::@850e5864e66a5e4b3cf6",
+					"jsonFile" : "target-RemoteControl_deps-Debug-30feb8a461d6625ff989.json",
+					"name" : "RemoteControl_deps",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "VQFAlgorithm::@850e5864e66a5e4b3cf6",
+					"jsonFile" : "target-VQFAlgorithm-Debug-29b9b319ec33df2a8499.json",
+					"name" : "VQFAlgorithm",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "VQFModule_deps::@850e5864e66a5e4b3cf6",
+					"jsonFile" : "target-VQFModule_deps-Debug-c1ec34021309e04b422e.json",
+					"name" : "VQFModule_deps",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "crc::@20afba5e48de71b78910",
+					"jsonFile" : "target-crc-Debug-4a7989a2a7cb839b68b2.json",
+					"name" : "crc",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "eigen::@c30d40c0333d31fd834a",
+					"jsonFile" : "target-eigen-Debug-f2c210eb120c74ddf978.json",
+					"name" : "eigen",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "serialization::@ca11e49372bbea32b812",
+					"jsonFile" : "target-serialization-Debug-914514d1459b70836f59.json",
+					"name" : "serialization",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "stm32cubemx::@768a070a0fe75716b479",
+					"jsonFile" : "target-stm32cubemx-Debug-d4bdc4ccefcafea81878.json",
+					"name" : "stm32cubemx",
+					"projectIndex" : 0
+				}
+			],
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						2,
+						3,
+						4
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-Debug-f040eec181a89de70dbe.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.22"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						2
+					]
+				},
+				{
+					"abstractTargetIndexes" : 
+					[
+						15
+					],
+					"build" : "cmake/stm32cubemx",
+					"jsonFile" : "directory-cmake.stm32cubemx-Debug-720efe0a241989607e76.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.22"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "cmake/stm32cubemx",
+					"targetIndexes" : 
+					[
+						0,
+						1
+					]
+				},
+				{
+					"abstractTargetIndexes" : 
+					[
+						14
+					],
+					"build" : "LibHT/serialization",
+					"jsonFile" : "directory-LibHT.serialization-Debug-8488b5f57727bf586c38.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.22"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "lib/libht/utility/serialization"
+				},
+				{
+					"abstractTargetIndexes" : 
+					[
+						12
+					],
+					"build" : "LibHT/crc",
+					"jsonFile" : "directory-LibHT.crc-Debug-c91c94fbfd5e25be61b2.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.22"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "lib/libht/utility/crc"
+				},
+				{
+					"abstractTargetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11
+					],
+					"build" : "LibXR",
+					"childIndexes" : 
+					[
+						5
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-LibXR-Debug-1f8c31fab9563150f460.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.12"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 1,
+					"source" : "Middlewares/Third_Party/LibXR",
+					"targetIndexes" : 
+					[
+						3,
+						4
+					]
+				},
+				{
+					"abstractTargetIndexes" : 
+					[
+						13
+					],
+					"build" : "LibXR/lib/Eigen",
+					"childIndexes" : 
+					[
+						6
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-LibXR.lib.Eigen-Debug-705756a260c65aa6df1d.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10.0"
+					},
+					"parentIndex" : 4,
+					"projectIndex" : 2,
+					"source" : "Middlewares/Third_Party/LibXR/lib/Eigen"
+				},
+				{
+					"build" : "LibXR/lib/Eigen/unsupported",
+					"childIndexes" : 
+					[
+						7
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-LibXR.lib.Eigen.unsupported-Debug-22d94a453ce7eb2eb00a.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10.0"
+					},
+					"parentIndex" : 5,
+					"projectIndex" : 2,
+					"source" : "Middlewares/Third_Party/LibXR/lib/Eigen/unsupported"
+				},
+				{
+					"build" : "LibXR/lib/Eigen/unsupported/Eigen",
+					"childIndexes" : 
+					[
+						8
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-LibXR.lib.Eigen.unsupported.Eigen-Debug-a0e7e9dc09024fa55470.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10.0"
+					},
+					"parentIndex" : 6,
+					"projectIndex" : 2,
+					"source" : "Middlewares/Third_Party/LibXR/lib/Eigen/unsupported/Eigen"
+				},
+				{
+					"build" : "LibXR/lib/Eigen/unsupported/Eigen/CXX11",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-LibXR.lib.Eigen.unsupported.Eigen.CXX11-Debug-7671f9f5c4a9474a2035.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10.0"
+					},
+					"parentIndex" : 7,
+					"projectIndex" : 2,
+					"source" : "Middlewares/Third_Party/LibXR/lib/Eigen/unsupported/Eigen/CXX11"
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"abstractTargetIndexes" : 
+					[
+						12,
+						14,
+						15
+					],
+					"childIndexes" : 
+					[
+						1
+					],
+					"directoryIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3
+					],
+					"name" : "my_gimbal",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2
+					]
+				},
+				{
+					"abstractTargetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11
+					],
+					"childIndexes" : 
+					[
+						2
+					],
+					"directoryIndexes" : 
+					[
+						4
+					],
+					"name" : "xr",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						3,
+						4
+					]
+				},
+				{
+					"abstractTargetIndexes" : 
+					[
+						13
+					],
+					"directoryIndexes" : 
+					[
+						5,
+						6,
+						7,
+						8
+					],
+					"name" : "Eigen3",
+					"parentIndex" : 1
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 1,
+					"id" : "FreeRTOS::@768a070a0fe75716b479",
+					"jsonFile" : "target-FreeRTOS-Debug-5b5316d6728da3497f74.json",
+					"name" : "FreeRTOS",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "STM32_Drivers::@768a070a0fe75716b479",
+					"jsonFile" : "target-STM32_Drivers-Debug-ae53a41f9a092cc9305b.json",
+					"name" : "STM32_Drivers",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "my_gimbal::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-my_gimbal-Debug-cc6a4b35062197c49110.json",
+					"name" : "my_gimbal",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "xr::@850e5864e66a5e4b3cf6",
+					"jsonFile" : "target-xr-Debug-ff3133c36bcafeed6c91.json",
+					"name" : "xr",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "xrobot_freshness_check::@850e5864e66a5e4b3cf6",
+					"jsonFile" : "target-xrobot_freshness_check-Debug-4606eac6c2c57759e722.json",
+					"name" : "xrobot_freshness_check",
+					"projectIndex" : 1
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/build/Debug",
+		"source" : "D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 10
+	}
+}

@@ -1,0 +1,5 @@
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/FreeRTOS/Source/list.c:50:6:vListInitialise	0	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/FreeRTOS/Source/list.c:86:6:vListInitialiseItem	0	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/FreeRTOS/Source/list.c:98:6:vListInsertEnd	4	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/FreeRTOS/Source/list.c:128:6:vListInsert	8	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/FreeRTOS/Source/list.c:199:13:uxListRemove	4	static

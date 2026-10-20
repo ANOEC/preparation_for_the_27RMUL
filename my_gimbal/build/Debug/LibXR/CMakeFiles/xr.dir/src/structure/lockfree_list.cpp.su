@@ -1,0 +1,8 @@
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/core/libxr_cb.hpp:144:15:) [with Args = {const char*, long unsigned int}]	0	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/structure/lockfree_list.cpp:5:1:LibXR::LockFreeList::BaseNode::BaseNode(size_t)	0	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/structure/lockfree_list.cpp:7:1:LibXR::LockFreeList::BaseNode::~BaseNode()	8	static,ignoring_inline_asm
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/structure/lockfree_list.cpp:9:1:LibXR::LockFreeList::LockFreeList()	0	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/structure/lockfree_list.cpp:14:1:LibXR::LockFreeList::~LockFreeList()	8	static,ignoring_inline_asm
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/structure/lockfree_list.cpp:26:6:void LibXR::LockFreeList::Add(BaseNode&)	0	static,ignoring_inline_asm
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/structure/lockfree_list.cpp:37:10:uint32_t LibXR::LockFreeList::Size()	0	static,ignoring_inline_asm
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/structure/lockfree_list.cpp:46:1:cpp)	0	static

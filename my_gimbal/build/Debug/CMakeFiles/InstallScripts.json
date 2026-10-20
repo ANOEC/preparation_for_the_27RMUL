@@ -1,0 +1,15 @@
+{
+	"InstallScripts" : 
+	[
+		"D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/build/Debug/cmake_install.cmake",
+		"D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/build/Debug/cmake/stm32cubemx/cmake_install.cmake",
+		"D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/build/Debug/LibHT/serialization/cmake_install.cmake",
+		"D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/build/Debug/LibHT/crc/cmake_install.cmake",
+		"D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/build/Debug/LibXR/cmake_install.cmake",
+		"D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/build/Debug/LibXR/lib/Eigen/cmake_install.cmake",
+		"D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/build/Debug/LibXR/lib/Eigen/unsupported/cmake_install.cmake",
+		"D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/build/Debug/LibXR/lib/Eigen/unsupported/Eigen/cmake_install.cmake",
+		"D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/build/Debug/LibXR/lib/Eigen/unsupported/Eigen/CXX11/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

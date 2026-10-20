@@ -1,0 +1,6 @@
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/core/libxr_cb.hpp:144:15:) [with Args = {const char*, long unsigned int}]	0	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/driver/st/stm32_timebase.cpp:79:1:LibXR::STM32Timebase::STM32Timebase()	4	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/driver/st/stm32_timebase.cpp:86:22:static LibXR::MicrosecondTimestamp LibXR::Timebase::GetMicroseconds()	32	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/driver/st/stm32_timebase.cpp:102:22:static LibXR::MillisecondTimestamp LibXR::Timebase::GetMilliseconds()	8	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/driver/st/stm32_timebase.cpp:108:1:LibXR::STM32TimerTimebase::STM32TimerTimebase(TIM_HandleTypeDef*)	4	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/driver/st/stm32_timebase.cpp:114:1:cpp)	0	static

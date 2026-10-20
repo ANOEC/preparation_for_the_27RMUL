@@ -1,0 +1,5 @@
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/system/freertos/mutex.cpp:7:1:LibXR::Mutex::Mutex()	8	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/system/freertos/mutex.cpp:12:1:LibXR::Mutex::~Mutex()	8	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/system/freertos/mutex.cpp:20:11:LibXR::ErrorCode LibXR::Mutex::Lock()	8	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/system/freertos/mutex.cpp:29:11:LibXR::ErrorCode LibXR::Mutex::TryLock()	8	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/system/freertos/mutex.cpp:38:6:void LibXR::Mutex::Unlock()	0	static

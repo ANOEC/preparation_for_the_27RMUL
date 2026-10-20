@@ -1,0 +1,16 @@
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/structure/queue/queue_base.cpp:7:1:LibXR::QueueBase::QueueBase(uint16_t, size_t, uint8_t*)	0	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/structure/queue/queue_base.cpp:15:1:LibXR::QueueBase::QueueBase(uint16_t, size_t)	16	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/structure/queue/queue_base.cpp:23:1:LibXR::QueueBase::~QueueBase()	8	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/structure/queue/queue_base.cpp:31:21:void* LibXR::QueueBase::operator[](uint32_t)	0	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/structure/queue/queue_base.cpp:36:11:LibXR::ErrorCode LibXR::QueueBase::PushBytes(const void*)	16	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/structure/queue/queue_base.cpp:56:11:LibXR::ErrorCode LibXR::QueueBase::PeekBytes(void*)	16	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/structure/queue/queue_base.cpp:71:11:LibXR::ErrorCode LibXR::QueueBase::PopBytes(void*)	8	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/structure/queue/queue_base.cpp:87:5:int LibXR::QueueBase::GetLastElementIndex() const	0	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/structure/queue/queue_base.cpp:96:5:int LibXR::QueueBase::GetFirstElementIndex() const	0	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/structure/queue/queue_base.cpp:105:11:LibXR::ErrorCode LibXR::QueueBase::PushBatchBytes(const void*, size_t)	24	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/structure/queue/queue_base.cpp:135:11:LibXR::ErrorCode LibXR::QueueBase::PopBatchBytes(void*, size_t)	24	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/structure/queue/queue_base.cpp:165:11:LibXR::ErrorCode LibXR::QueueBase::PeekBatchBytes(void*, size_t)	24	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/structure/queue/queue_base.cpp:191:11:LibXR::ErrorCode LibXR::QueueBase::OverwriteBytes(const void*)	16	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/structure/queue/queue_base.cpp:209:6:void LibXR::QueueBase::Reset()	0	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/structure/queue/queue_base.cpp:215:22:size_t LibXR::QueueBase::Size() const	0	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/structure/queue/queue_base.cpp:231:22:size_t LibXR::QueueBase::EmptySize() const	0	static

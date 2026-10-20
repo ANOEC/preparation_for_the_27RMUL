@@ -1,0 +1,5 @@
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/driver/usb/device/device_class.hpp:35:23:virtual const char* LibXR::USB::DeviceClass::GetInterfaceString(size_t) const	0	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/core/libxr_cb.hpp:144:15:) [with Args = {const char*, long unsigned int}]	0	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/driver/usb/device/device_class.cpp:5:9:uint8_t LibXR::USB::DeviceClass::GetInterfaceStringIndex(size_t) const	24	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/driver/usb/device/device_class.cpp:27:6:void LibXR::USB::DeviceClass::SetInterfaceStringBaseIndex(uint8_t)	0	static
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/driver/usb/device/device_class.cpp:30:1:cpp)	0	static

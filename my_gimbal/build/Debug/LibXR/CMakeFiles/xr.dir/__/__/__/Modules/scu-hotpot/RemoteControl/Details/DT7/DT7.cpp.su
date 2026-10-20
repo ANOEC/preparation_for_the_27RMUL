@@ -1,0 +1,1 @@
+D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Modules/scu-hotpot/RemoteControl/Details/DT7/DT7.cpp:9:23:Module::Remote::DT7::Remote::ProcessedType Module::Remote::DT7::Remote::SBUSToRC(LibXR::SPSCQueue<std::byte>&)	104	static,ignoring_inline_asm
