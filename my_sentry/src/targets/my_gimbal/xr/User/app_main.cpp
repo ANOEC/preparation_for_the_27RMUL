@@ -2,10 +2,17 @@
 // Edit only between "User Code Begin" and "User Code End"; the rest is regenerated.
 #include "app_main.h"
 
+#include "cdc_uart.hpp"
 #include "libxr.hpp"
 #include "main.h"
+#include "stm32_canfd.hpp"
+#include "stm32_gpio.hpp"
 #include "stm32_power.hpp"
+#include "stm32_pwm.hpp"
+#include "stm32_spi.hpp"
 #include "stm32_timebase.hpp"
+#include "stm32_uart.hpp"
+#include "stm32_usb_dev.hpp"
 #include "xrobot_main.hpp"
 
 using namespace LibXR;
@@ -13,7 +20,29 @@ using namespace LibXR;
 /* User Code Begin 1 */
 /* User Code End 1 */
 
+extern FDCAN_HandleTypeDef hfdcan1;
+extern FDCAN_HandleTypeDef hfdcan2;
+extern FDCAN_HandleTypeDef hfdcan3;
+extern PCD_HandleTypeDef hpcd_USB_OTG_HS;
+extern SPI_HandleTypeDef hspi2;
+extern TIM_HandleTypeDef htim3;
 extern TIM_HandleTypeDef htim6;
+extern TIM_HandleTypeDef htim12;
+extern UART_HandleTypeDef huart1;
+extern UART_HandleTypeDef huart5;
+
+// DMA buffers (STM32H723VG: D-cache, 32-byte lines)
+alignas(32) static uint8_t spi2_rx_buf[32];
+alignas(32) static uint8_t spi2_tx_buf[32];
+alignas(32) static uint8_t uart5_rx_buf[128];
+alignas(32) static uint8_t uart5_tx_buf[128];
+alignas(32) static uint8_t usart1_rx_buf[128];
+alignas(32) static uint8_t usart1_tx_buf[128];
+alignas(32) static uint8_t usb_otg_hs_ep0_in_buf[32];
+alignas(32) static uint8_t usb_otg_hs_ep0_out_buf[32];
+alignas(32) static uint8_t usb_otg_hs_ep1_in_buf[128];
+alignas(32) static uint8_t usb_otg_hs_ep1_out_buf[128];
+alignas(32) static uint8_t usb_otg_hs_ep2_in_buf[32];
 
 extern "C" void app_main(void)
 {
@@ -25,8 +54,73 @@ extern "C" void app_main(void)
   PlatformInit(static_cast<uint32_t>(Thread::Priority::MEDIUM), 1024);
   static STM32PowerManager power_manager;
 
+  // GPIO
+  static STM32GPIO BMI088_ACC_CS(BMI088_ACC_CS_GPIO_Port, BMI088_ACC_CS_Pin);
+  static STM32GPIO LED(LED_GPIO_Port, LED_Pin);
+  static STM32GPIO BMI088_GYRO_CS(BMI088_GYRO_CS_GPIO_Port, BMI088_GYRO_CS_Pin);
+  static STM32GPIO BMI088_ACC_INT(BMI088_ACC_INT_GPIO_Port, BMI088_ACC_INT_Pin,
+                                  EXTI15_10_IRQn);
+  static STM32GPIO BMI088_GYRO_INT(BMI088_GYRO_INT_GPIO_Port, BMI088_GYRO_INT_Pin,
+                                   EXTI15_10_IRQn);
+
+  // PWM
+  static STM32PWM pwm_tim12_ch2(&htim12, TIM_CHANNEL_2, false);
+  static STM32PWM pwm_tim3_ch4(&htim3, TIM_CHANNEL_4, false);
+
+  // SPI, UART, CAN
+  static STM32SPI spi2(&hspi2, spi2_rx_buf, spi2_tx_buf, UINT32_MAX);
+  static STM32UART uart5(&huart5, uart5_rx_buf, uart5_tx_buf, 5);
+  static STM32UART usart1(&huart1, usart1_rx_buf, usart1_tx_buf, 5);
+  static STM32CANFD fdcan1(&hfdcan1, 5);
+  LibXR::CAN& can1 = fdcan1;
+  static STM32CANFD fdcan2(&hfdcan2, 5);
+  LibXR::CAN& can2 = fdcan2;
+  static STM32CANFD fdcan3(&hfdcan3, 5);
+  LibXR::CAN& can3 = fdcan3;
+
+  // USB OTG HS: 1 CDC
+  static constexpr auto usb_otg_hs_strings = USB::DescriptorStrings::MakeLanguagePack(
+      USB::DescriptorStrings::Language::EN_US, "XRobot",
+      "STM32 XRUSB USB_OTG_HS CDC Demo", "XRUSB-DEMO-");
+  static USB::CDCUart usb_otg_hs_cdc(USB::Endpoint::EPNumber::EP1,
+                                     USB::Endpoint::EPNumber::EP1,
+                                     USB::Endpoint::EPNumber::EP2, 128, 128, 3);
+  static STM32USBDeviceOtgHS usb_otg_hs(
+      &hpcd_USB_OTG_HS, 256, {{usb_otg_hs_ep0_out_buf, 8}, usb_otg_hs_ep1_out_buf},
+      {{{usb_otg_hs_ep0_in_buf, 8}, 8},
+       {usb_otg_hs_ep1_in_buf, 128},
+       {{usb_otg_hs_ep2_in_buf, 16}, 16}},
+      USB::DeviceDescriptor::PacketSize0::SIZE_8, 0x1D50, 0x6199, 0x100,
+      {&usb_otg_hs_strings}, {{&usb_otg_hs_cdc}},
+      {reinterpret_cast<void*>(UID_BASE), 12});
+  usb_otg_hs.Init(false);
+  usb_otg_hs.Start(false);
+
   // Hardware registration
   XR_REGISTER(power_manager, LibXR::PowerManager);
+
+  XR_REGISTER(BMI088_ACC_CS, LibXR::GPIO);
+  XR_REGISTER(LED, LibXR::GPIO);
+  XR_REGISTER(BMI088_GYRO_CS, LibXR::GPIO);
+  XR_REGISTER(BMI088_ACC_INT, LibXR::GPIO);
+  XR_REGISTER(BMI088_GYRO_INT, LibXR::GPIO);
+
+  XR_REGISTER(pwm_tim12_ch2, LibXR::PWM);
+  XR_REGISTER(pwm_tim3_ch4, LibXR::PWM);
+
+  XR_REGISTER(spi2, LibXR::SPI);
+
+  XR_REGISTER(uart5, LibXR::UART);
+  XR_REGISTER(usart1, LibXR::UART);
+  XR_REGISTER(usb_otg_hs_cdc, LibXR::UART);
+
+  XR_REGISTER(can1, LibXR::CAN);
+  XR_REGISTER(can2, LibXR::CAN);
+  XR_REGISTER(can3, LibXR::CAN);
+
+  XR_REGISTER(fdcan1, LibXR::FDCAN);
+  XR_REGISTER(fdcan2, LibXR::FDCAN);
+  XR_REGISTER(fdcan3, LibXR::FDCAN);
 
   /* User Code Begin 3 */
   /* User Code End 3 */

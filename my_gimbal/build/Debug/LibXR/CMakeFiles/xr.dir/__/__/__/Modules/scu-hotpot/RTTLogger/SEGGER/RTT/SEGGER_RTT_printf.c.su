@@ -1,5 +1,0 @@
-D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Modules/scu-hotpot/RTTLogger/SEGGER/RTT/SEGGER_RTT_printf.c:111:13:_StoreChar	8	static
-D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Modules/scu-hotpot/RTTLogger/SEGGER/RTT/SEGGER_RTT_printf.c:137:13:_PrintUnsigned	40	static
-D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Modules/scu-hotpot/RTTLogger/SEGGER/RTT/SEGGER_RTT_printf.c:228:13:_PrintInt.constprop	40	static
-D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Modules/scu-hotpot/RTTLogger/SEGGER/RTT/SEGGER_RTT_printf.c:323:5:SEGGER_RTT_vprintf	160	static
-D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Modules/scu-hotpot/RTTLogger/SEGGER/RTT/SEGGER_RTT_printf.c:540:5:SEGGER_RTT_printf	12	static

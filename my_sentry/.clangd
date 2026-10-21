@@ -1,2 +1,16 @@
 CompileFlags:
   CompilationDatabase: build/Debug
+
+---
+
+CompileFlags:
+  CompilationDatabase: build/Debug/targets/my_gimbal
+If:
+  PathMatch: build/Debug/.*
+
+---
+
+CompileFlags:
+  CompilationDatabase: build/Release/targets/my_gimbal
+If:
+  PathMatch: build/Release/.*

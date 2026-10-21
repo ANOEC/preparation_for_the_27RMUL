@@ -1,8 +1,0 @@
-D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/driver/power.hpp:54:16:virtual void LibXR::PowerManager::JumpToBootloader()	8	static
-D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/driver/st/stm32_power.hpp:15:7:constexpr LibXR::STM32PowerManager::~STM32PowerManager()	0	static
-D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/core/libxr_cb.hpp:144:15:) [with Args = {const char*, long unsigned int}]	0	static
-D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/User/app_main.cpp:34:1:void __static_initialization_and_destruction_0()	0	static
-D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/User/xrobot_main.hpp:7:33:void XRobotMain()	8	static
-D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/driver/st/stm32_power.hpp:15:7:virtual constexpr LibXR::STM32PowerManager::~STM32PowerManager()	8	static
-D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/User/app_main.cpp:18:17:void app_main()	8	static
-D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/User/app_main.cpp:34:1:cpp)	8	static

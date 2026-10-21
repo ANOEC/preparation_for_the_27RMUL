@@ -1,7 +1,7 @@
 #pragma once
 
 #include "app/chassis/chassis.hpp"
-#include "config/generated/chassis_params.hpp"
+#include "config/chassis/generated/chassis_params.hpp"
 
 namespace app::chassis {
 

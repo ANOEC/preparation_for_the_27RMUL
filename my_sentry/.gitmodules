@@ -1,5 +1,5 @@
-[submodule "Middlewares/Third_Party/LibXR"]
-	path = Middlewares/Third_Party/LibXR
+[submodule "lib/LibXR"]
+	path = lib/LibXR
 	url = https://github.com/xrobot-org/libxr.git
 [submodule "lib/libht"]
 	path = lib/libht

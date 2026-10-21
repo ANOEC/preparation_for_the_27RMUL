@@ -58,4 +58,4 @@
 // xrobot: depends "../Modules/scu-hotpot/VQFModule/Algorithm/VQF/detail/VQFCore.hpp"
 // xrobot: depends "../Modules/scu-hotpot/VQFModule/Algorithm/VQF/detail/VQFCore.tpp"
 // xrobot: depends "../Modules/scu-hotpot/VQFModule/VQFModule.hpp"
-// xrobot: digest 6c921567fd07a01edd32aa3d0c679ac2e5d87a3afcc7fa68cf87a519904f0169
+// xrobot: digest 9f8fe86c495f75160086d424bc17750d9fda6863d9c39318c38221bd50149125

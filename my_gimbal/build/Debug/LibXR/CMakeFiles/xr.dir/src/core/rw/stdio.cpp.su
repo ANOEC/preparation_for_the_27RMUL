@@ -1,6 +1,0 @@
-D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/core/rw/stdio.cpp:8:1:LibXR::STDIO::CompiledSink::CompiledSink(LibXR::WritePort::Stream&)	0	static
-D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/core/rw/stdio.cpp:10:11:LibXR::ErrorCode LibXR::STDIO::CompiledSink::Write(std::string_view)	40	static,ignoring_inline_asm
-D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/core/rw/stdio.cpp:50:6:static bool LibXR::STDIO::BeginWriteSession()	16	static
-D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/core/rw/stdio.cpp:65:5:static int LibXR::STDIO::WriteCompiledToStream(LibXR::WritePort::Stream&, void*, CompiledWriteFun)	40	static
-D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/core/rw/stdio.cpp:73:5:static int LibXR::STDIO::WriteCompiledSession(void*, CompiledWriteFun)	48	static
-D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/core/rw/stdio.cpp:88:5:static int LibXR::STDIO::FinishWriteSession(LibXR::WritePort::Stream&, size_t, LibXR::ErrorCode)	24	static

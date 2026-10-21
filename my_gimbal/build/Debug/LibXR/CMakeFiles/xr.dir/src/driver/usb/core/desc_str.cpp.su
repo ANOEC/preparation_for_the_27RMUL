@@ -1,6 +1,0 @@
-D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/driver/usb/core/desc_str.cpp:5:1:LibXR::USB::DescriptorStrings::DescriptorStrings(const std::initializer_list<const LanguagePack*>&, const uint8_t*, size_t)	32	static
-D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/driver/usb/core/desc_str.cpp:139:16:LibXR::RawData LibXR::USB::DescriptorStrings::GetData()	16	static
-D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/driver/usb/core/desc_str.cpp:146:16:LibXR::RawData LibXR::USB::DescriptorStrings::GetLangIDData()	0	static
-D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/driver/usb/core/desc_str.cpp:151:6:bool LibXR::USB::DescriptorStrings::HasLanguage(uint16_t) const	4	static
-D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/driver/usb/core/desc_str.cpp:165:6:static void LibXR::USB::DescriptorStrings::ToUTF16LE(const char*, uint8_t*)	4	static
-D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/driver/usb/core/desc_str.cpp:58:18:LibXR::ErrorCode LibXR::USB::DescriptorStrings::GenerateString(Index, uint16_t)	24	static

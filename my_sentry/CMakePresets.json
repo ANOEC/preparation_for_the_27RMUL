@@ -29,11 +29,13 @@
     "buildPresets": [
         {
             "name": "Debug",
-            "configurePreset": "Debug"
+            "configurePreset": "Debug",
+            "targets": ["robot"]
         },
         {
             "name": "Release",
-            "configurePreset": "Release"
+            "configurePreset": "Release",
+            "targets": ["robot"]
         }
     ]
 }

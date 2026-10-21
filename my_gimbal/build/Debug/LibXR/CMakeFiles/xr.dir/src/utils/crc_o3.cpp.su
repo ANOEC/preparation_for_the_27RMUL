@@ -1,4 +1,0 @@
-D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/utils/crc_o3.cpp:3:9:static uint8_t LibXR::CRC8::Calculate(const void*, size_t)	12	static
-D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/utils/crc_o3.cpp:19:10:static uint16_t LibXR::CRC16::Calculate(const void*, size_t)	12	static
-D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/utils/crc_o3.cpp:35:10:static uint32_t LibXR::CRC32::Calculate(const void*, size_t)	16	static
-D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Middlewares/Third_Party/LibXR/src/utils/crc_o3.cpp:51:10:static uint64_t LibXR::CRC64::Calculate(const void*, size_t)	36	static

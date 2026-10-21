@@ -1,6 +1,11 @@
-build
+/build/
+**/build/
 mx.scratch
-!.settings
-/User/xrobot_main.hpp
-/Modules/CMakeLists.txt
-/Modules/*/
+compile_commands.json
+
+!.settings/
+
+**/hal/.config.yaml
+**/xr/User/xrobot_main.hpp
+**/xr/Modules/CMakeLists.txt
+**/xr/Modules/*/

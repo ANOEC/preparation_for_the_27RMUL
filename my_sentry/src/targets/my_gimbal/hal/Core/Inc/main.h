@@ -57,6 +57,18 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define LED_Pin GPIO_PIN_15
+#define LED_GPIO_Port GPIOC
+#define BMI088_ACC_CS_Pin GPIO_PIN_0
+#define BMI088_ACC_CS_GPIO_Port GPIOC
+#define BMI088_GYRO_CS_Pin GPIO_PIN_3
+#define BMI088_GYRO_CS_GPIO_Port GPIOC
+#define BMI088_ACC_INT_Pin GPIO_PIN_10
+#define BMI088_ACC_INT_GPIO_Port GPIOE
+#define BMI088_ACC_INT_EXTI_IRQn EXTI15_10_IRQn
+#define BMI088_GYRO_INT_Pin GPIO_PIN_12
+#define BMI088_GYRO_INT_GPIO_Port GPIOE
+#define BMI088_GYRO_INT_EXTI_IRQn EXTI15_10_IRQn
 
 /* USER CODE BEGIN Private defines */
 

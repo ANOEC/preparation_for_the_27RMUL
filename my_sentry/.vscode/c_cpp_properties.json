@@ -1,8 +1,28 @@
 {
     "configurations": [
         {
-            "name": "STM32",
-            "compileCommands": "${workspaceFolder}/build/Debug/compile_commands.json"
+            "name": "STM32_build/Debug",
+            "compileCommands": "${workspaceFolder}/build/Debug/targets/my_gimbal/compile_commands.json"
+        },
+        {
+            "name": "STM32_build/Debug",
+            "compileCommands": "${workspaceFolder}/build/Debug/targets/my_gimbal/compile_commands.json"
+        },
+        {
+            "name": "STM32_build/Debug",
+            "compileCommands": "${workspaceFolder}/build/Debug/targets/my_gimbal/compile_commands.json"
+        },
+        {
+            "name": "STM32_build/Release",
+            "compileCommands": "${workspaceFolder}/build/Release/targets/my_gimbal/compile_commands.json"
+        },
+        {
+            "name": "STM32_build/Release",
+            "compileCommands": "${workspaceFolder}/build/Release/targets/my_gimbal/compile_commands.json"
+        },
+        {
+            "name": "STM32_build/Release",
+            "compileCommands": "${workspaceFolder}/build/Release/targets/my_gimbal/compile_commands.json"
         }
     ]
 }

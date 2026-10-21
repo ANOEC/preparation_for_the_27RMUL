@@ -1,7 +1,0 @@
-D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Core/Src/stm32h7xx_it.c:70:6:NMI_Handler	0	static
-D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Core/Src/stm32h7xx_it.c:85:6:HardFault_Handler	0	static
-D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Core/Src/stm32h7xx_it.c:100:6:MemManage_Handler	0	static
-D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Core/Src/stm32h7xx_it.c:115:6:BusFault_Handler	0	static
-D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Core/Src/stm32h7xx_it.c:130:6:UsageFault_Handler	0	static
-D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Core/Src/stm32h7xx_it.c:145:6:DebugMon_Handler	0	static
-D:/stm32_workSpace/preparation_for_the_27RMUL/my_gimbal/Core/Src/stm32h7xx_it.c:165:6:TIM6_DAC_IRQHandler	8	static
