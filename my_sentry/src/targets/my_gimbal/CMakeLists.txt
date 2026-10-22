@@ -19,9 +19,29 @@ endif()
 set(FIRMWARE_HAL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/hal")
 set(FIRMWARE_XR_DIR "${CMAKE_CURRENT_SOURCE_DIR}/xr")
 set(USER_DIR "${FIRMWARE_XR_DIR}/User")
+set(GIMBAL_CONFIG_DIR "${ROBOT_ROOT}/src/config/gimbal")
+
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
+
+set(GIMBAL_PARAM_TOML "${GIMBAL_CONFIG_DIR}/gimbal.toml")
+set(GIMBAL_PARAM_GENERATOR "${GIMBAL_CONFIG_DIR}/generate_params.py")
+set(GIMBAL_PARAM_HEADER "${GIMBAL_CONFIG_DIR}/generated/gimbal_params.hpp")
+add_custom_command(
+    OUTPUT "${GIMBAL_PARAM_HEADER}"
+    COMMAND "${Python3_EXECUTABLE}" "${GIMBAL_PARAM_GENERATOR}"
+            "${GIMBAL_PARAM_TOML}" "${GIMBAL_PARAM_HEADER}"
+    DEPENDS "${GIMBAL_PARAM_GENERATOR}" "${GIMBAL_PARAM_TOML}"
+    COMMENT "Generating gimbal parameters from gimbal.toml"
+    VERBATIM
+)
+add_custom_target(generate_gimbal_params ALL DEPENDS "${GIMBAL_PARAM_HEADER}")
 
 add_executable(${PROJECT_NAME})
-target_include_directories(${PROJECT_NAME} PRIVATE "${USER_DIR}")
+add_dependencies(${PROJECT_NAME} generate_gimbal_params)
+target_include_directories(${PROJECT_NAME} PRIVATE
+    "${USER_DIR}"
+    "${ROBOT_ROOT}/src"
+)
 
 add_subdirectory(
     "${ROBOT_ROOT}/cmake/platform/stm32"
