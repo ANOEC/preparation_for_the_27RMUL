@@ -114,6 +114,7 @@ int main(void)
   MX_UART5_Init();
   MX_TIM12_Init();
   MX_USB_OTG_HS_PCD_Init();
+  MX_USART10_UART_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */

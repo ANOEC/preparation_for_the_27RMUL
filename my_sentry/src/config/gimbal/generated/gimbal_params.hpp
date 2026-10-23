@@ -31,13 +31,13 @@ namespace param::gimbal {
             float P_integral_limit = 0.0f;
             float P_kd = 0.0f;
             float P_ki = 0.0f;
-            float P_kp = 20.0f;
+            float P_kp = 0.0f;
             float P_max_output = 16384.0f;
             float V_error_threshold = 0.0f;
             float V_integral_limit = 20.0f;
             float V_kd = 0.0f;
             float V_ki = 0.008f;
-            float V_kp = 0.8f;
+            float V_kp = 5.8f;
             float V_max_output = 9.68625f;
         };
         inline pitch_t pitch {};
@@ -103,9 +103,9 @@ namespace param::gimbal {
         float forward_compensation_big_yaw = 0.0f;
         float forward_compensation_yaw = 0.0f;
         float gimbal_lbg_bandwidth = 30.0f;
-        float gravity_w1 = 0.2825f;
-        float gravity_w2 = -0.0982f;
-        float gravity_w3 = -0.2219f;
+        int gravity_w1 = 0;
+        int gravity_w2 = 0;
+        int gravity_w3 = 0;
         float pitch_J = 0.0084f;
         float pitch_limit_lpf_alpha = 0.2f;
         float pitch_max_vel = 4.2f;

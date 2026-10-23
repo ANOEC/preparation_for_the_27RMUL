@@ -110,13 +110,48 @@ Peripherals:
       DMA_RX_TYPE: DMA
       DMA_TX: ENABLE
       DMA_TX_TYPE: DMA
+    USART10:
+      Mode: Asynchronous
+      dma:
+        dma_rx:
+          request_id: '5'
+          peripheral: USART10_RX
+          dma_type: DMA
+          stream: DMA1_Stream5
+          direction: MEMORY
+          periph_inc: false
+          mem_inc: false
+          periph_align: byte
+          mem_align: byte
+          mode: Normal
+          priority: Low
+          fifo: Disabled
+          direction_full: periph_to_memory
+        dma_tx:
+          request_id: '4'
+          peripheral: USART10_TX
+          dma_type: DMA
+          stream: DMA1_Stream4
+          direction: PERIPH
+          periph_inc: false
+          mem_inc: false
+          periph_align: byte
+          mem_align: byte
+          mode: Normal
+          priority: Low
+          fifo: Disabled
+          direction_full: memory_to_periph
+      DMA_RX: ENABLE
+      DMA_RX_TYPE: DMA
+      DMA_TX: ENABLE
+      DMA_TX_TYPE: DMA
   FDCAN:
     FDCAN1:
       BaudRate: '1000000'
     FDCAN2:
       BaudRate: '1000000'
     FDCAN3:
-      BaudRate: '1250000'
+      BaudRate: '1000000'
   USB:
     USB_OTG_HS:
       IPParameters:
@@ -131,6 +166,8 @@ DMA:
     Dma.Request1: USART1_TX
     Dma.Request2: UART5_RX
     Dma.Request3: UART5_TX
+    Dma.Request4: USART10_TX
+    Dma.Request5: USART10_RX
   Configurations:
     UART5_RX_2:
       request_id: '2'
@@ -151,6 +188,34 @@ DMA:
       peripheral: UART5_TX
       dma_type: DMA
       stream: DMA1_Stream3
+      direction: PERIPH
+      periph_inc: false
+      mem_inc: false
+      periph_align: byte
+      mem_align: byte
+      mode: Normal
+      priority: Low
+      fifo: Disabled
+      direction_full: memory_to_periph
+    USART10_RX_5:
+      request_id: '5'
+      peripheral: USART10_RX
+      dma_type: DMA
+      stream: DMA1_Stream5
+      direction: MEMORY
+      periph_inc: false
+      mem_inc: false
+      periph_align: byte
+      mem_align: byte
+      mode: Normal
+      priority: Low
+      fifo: Disabled
+      direction_full: periph_to_memory
+    USART10_TX_4:
+      request_id: '4'
+      peripheral: USART10_TX
+      dma_type: DMA
+      stream: DMA1_Stream4
       direction: PERIPH
       periph_inc: false
       mem_inc: false

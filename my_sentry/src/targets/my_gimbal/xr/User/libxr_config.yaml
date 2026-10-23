@@ -1,5 +1,5 @@
 generator: 6.0.0
-terminal_source: ''
+terminal_source: usart10
 software_timer:
   priority: 2
   stack_depth: 1024
@@ -12,12 +12,17 @@ USART:
   uart5:
     tx_buffer_size: 128
     rx_buffer_size: 128
-    dma_section: ''
+    dma_section: .dma_buffer
     tx_queue_size: 5
   usart1:
     tx_buffer_size: 128
     rx_buffer_size: 128
     dma_section: ''
+    tx_queue_size: 5
+  usart10:
+    tx_buffer_size: 128
+    rx_buffer_size: 128
+    dma_section: .dma_buffer
     tx_queue_size: 5
 FDCAN:
   fdcan1:
@@ -48,6 +53,9 @@ Terminal:
   max_line_size: 32
   max_arg_number: 5
   max_history_number: 5
+  run_as_thread: true
+  thread_stack_depth: 1024
+  thread_priority: 3
 database:
   enable: false
   block_size: auto

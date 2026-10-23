@@ -13,6 +13,7 @@ namespace
 constexpr float kTwoPi = 2.0f * std::numbers::pi_v<float>;
 constexpr float kPitchUpLimit = 29.5f * std::numbers::pi_v<float> / 180.0f;
 constexpr float kPitchDownLimit = -35.5f * std::numbers::pi_v<float> / 180.0f;
+constexpr float kBigYawAlignmentRate = 1.0f;  // rad/s
 
 template <typename Parameters>
 PidParameters PositionParameters(const Parameters& p)
@@ -94,11 +95,20 @@ void Gimbal::Run(float dt_s, uint32_t now_ms)
     yaw_.target = yaw_.angle;
     big_yaw_.target = big_yaw_.angle;
     pitch_.target = pitch_.angle;
+    big_yaw_target_offset_ = big_yaw_.angle - yaw_.angle;
     targets_initialized_ = true;
   }
 
   yaw_.target += command_.yaw_offset_rad;
-  big_yaw_.target = yaw_.target;
+  // Start from big yaw's measured angle, then smoothly merge it into the
+  // reference project's shared yaw target. This is bumpless even when the two
+  // encoders use different coordinate origins at the enable transition.
+  const float max_alignment_step =
+      kBigYawAlignmentRate * std::max(dt_s, 0.0f);
+  big_yaw_target_offset_ -=
+      std::clamp(big_yaw_target_offset_, -max_alignment_step,
+                 max_alignment_step);
+  big_yaw_.target = yaw_.target + big_yaw_target_offset_;
   pitch_.target += command_.pitch_offset_rad;
 
   // Preserve the reference project's encoder-assisted adaptive pitch stop.

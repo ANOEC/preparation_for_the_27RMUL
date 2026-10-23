@@ -18,6 +18,7 @@
 using namespace LibXR;
 
 /* User Code Begin 1 */
+#include "app/diagnostics/gimbal_diagnostics.hpp"
 #include "task_generated.hpp"
 /* User Code End 1 */
 
@@ -31,14 +32,17 @@ extern TIM_HandleTypeDef htim6;
 extern TIM_HandleTypeDef htim12;
 extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart5;
+extern UART_HandleTypeDef huart10;
 
 // DMA buffers (STM32H723VG: D-cache, 32-byte lines)
 alignas(32) static uint8_t spi2_rx_buf[32];
 alignas(32) static uint8_t spi2_tx_buf[32];
-alignas(32) static uint8_t uart5_rx_buf[128];
-alignas(32) static uint8_t uart5_tx_buf[128];
+alignas(32) static uint8_t uart5_rx_buf[128] __attribute__((section(".dma_buffer")));
+alignas(32) static uint8_t uart5_tx_buf[128] __attribute__((section(".dma_buffer")));
 alignas(32) static uint8_t usart1_rx_buf[128];
 alignas(32) static uint8_t usart1_tx_buf[128];
+alignas(32) static uint8_t usart10_rx_buf[128] __attribute__((section(".dma_buffer")));
+alignas(32) static uint8_t usart10_tx_buf[128] __attribute__((section(".dma_buffer")));
 alignas(32) static uint8_t usb_otg_hs_ep0_in_buf[32];
 alignas(32) static uint8_t usb_otg_hs_ep0_out_buf[32];
 alignas(32) static uint8_t usb_otg_hs_ep1_in_buf[128];
@@ -72,6 +76,7 @@ extern "C" void app_main(void)
   static STM32SPI spi2(&hspi2, spi2_rx_buf, spi2_tx_buf, UINT32_MAX);
   static STM32UART uart5(&huart5, uart5_rx_buf, uart5_tx_buf, 5);
   static STM32UART usart1(&huart1, usart1_rx_buf, usart1_tx_buf, 5);
+  static STM32UART usart10(&huart10, usart10_rx_buf, usart10_tx_buf, 5);
   static STM32CANFD fdcan1(&hfdcan1, 5);
   LibXR::CAN& can1 = fdcan1;
   static STM32CANFD fdcan2(&hfdcan2, 5);
@@ -97,6 +102,15 @@ extern "C" void app_main(void)
   usb_otg_hs.Init(false);
   usb_otg_hs.Start(false);
 
+  // Terminal on usart10
+  STDIO::read_ = usart10.read_port_;
+  STDIO::write_ = usart10.write_port_;
+  static RamFS ramfs("XRobot");
+  static Terminal<32, 32, 5, 5> terminal(ramfs);
+  static Thread term_thread;
+  term_thread.Create(&terminal, terminal.ThreadFun, "terminal", 1024,
+                     Thread::Priority::HIGH);
+
   // Hardware registration
   XR_REGISTER(power_manager, LibXR::PowerManager);
 
@@ -113,6 +127,7 @@ extern "C" void app_main(void)
 
   XR_REGISTER(uart5, LibXR::UART);
   XR_REGISTER(usart1, LibXR::UART);
+  XR_REGISTER(usart10, LibXR::UART);
   XR_REGISTER(usb_otg_hs_cdc, LibXR::UART);
 
   XR_REGISTER(can1, LibXR::CAN);
@@ -123,7 +138,13 @@ extern "C" void app_main(void)
   XR_REGISTER(fdcan2, LibXR::FDCAN);
   XR_REGISTER(fdcan3, LibXR::FDCAN);
 
+  XR_REGISTER(ramfs, LibXR::RamFS);
+
+  XR_REGISTER(terminal, LibXR::Terminal<32, 32, 5, 5>);
+
   /* User Code Begin 3 */
+  UserApp::Diagnostics::RegisterGimbalDiagnosticCommands(ramfs);
+  LibXR::STDIO::Printf<"\r\nLIBXR TERMINAL READY (USART10 115200 8N1)\r\n">();
   all_tasks_start();
   /* User Code End 3 */
   XROBOT_MAIN();

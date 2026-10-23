@@ -57,6 +57,7 @@ class Gimbal
   AxisState pitch_{};
   float yaw_motor_relative_angle_ = 0.0f;
   float yaw_motor_relative_velocity_ = 0.0f;
+  float big_yaw_target_offset_ = 0.0f;
   float pitch_encoder_angle_ = 0.0f;
   Remote::GimbalCommand command_{};
 

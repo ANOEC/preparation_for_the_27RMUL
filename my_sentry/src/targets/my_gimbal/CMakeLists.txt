@@ -60,6 +60,7 @@ add_dependencies(${PROJECT_NAME}
     generate_tasks
 )
 target_sources(${PROJECT_NAME} PRIVATE
+    "${USER_DIR}/app/diagnostics/gimbal_diagnostics.cpp"
     "${USER_DIR}/app/gimbal/control.cpp"
     "${USER_DIR}/app/gimbal/gimbal.cpp"
     "${USER_DIR}/app/gimbal/task.cc"

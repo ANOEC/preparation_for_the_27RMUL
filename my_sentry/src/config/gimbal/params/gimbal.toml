@@ -42,9 +42,9 @@ V_max_output = 9.68625    # 大 yaw 最大输出力矩，单位 N·m
 
 # pitch（DM J4310）位置环和速度环参数。
 [[dual_pid.pitch]]
-P_kp = 20.0               # 位置环比例系数
+P_kp = 0.0               # 位置环比例系数
 P_max_output = 16384.0    # 位置环输出限幅；当前值基本不限制速度目标
-V_kp = 0.8                # 速度环比例系数
+V_kp = 5.8                # 速度环比例系数
 V_ki = 0.008              # 速度环积分系数，用于消除稳态误差
 V_max_output = 9.68625    # pitch 最大输出力矩，单位 N·m
 V_integral_limit = 20.0   # pitch 速度环积分项限幅
@@ -100,9 +100,9 @@ yaw_feedforward = 0.0          # 小 yaw 控制输出前馈系数
 big_yaw_feedforward = 0.0      # 大 yaw 控制输出前馈系数
 
 # pitch 重力补偿模型：Tg = w1·sin(pitch) + w2·cos(pitch) + w3。
-gravity_w1 = 0.2825            # 正弦项系数，单位 N·m
-gravity_w2 = -0.0982           # 余弦项系数，单位 N·m
-gravity_w3 = -0.2219           # 常量偏置，单位 N·m
+gravity_w1 = 0           # 正弦项系数，单位 N·m
+gravity_w2 = 0           # 余弦项系数，单位 N·m
+gravity_w3 = 0           # 常量偏置，单位 N·m
 
 pitch_J = 0.0084               # pitch 轴等效转动惯量，单位 kg·m²
 # pitch_J = 0.018864           # 另一组曾使用的 pitch 惯量标定值
