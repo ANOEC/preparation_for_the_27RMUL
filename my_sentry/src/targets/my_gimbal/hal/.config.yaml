@@ -112,11 +112,11 @@ Peripherals:
       DMA_TX_TYPE: DMA
   FDCAN:
     FDCAN1:
-      BaudRate: '2083333'
+      BaudRate: '1000000'
     FDCAN2:
-      BaudRate: '2083333'
+      BaudRate: '1000000'
     FDCAN3:
-      BaudRate: '2083333'
+      BaudRate: '1250000'
   USB:
     USB_OTG_HS:
       IPParameters:

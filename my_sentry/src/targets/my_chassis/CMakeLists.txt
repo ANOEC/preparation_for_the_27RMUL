@@ -24,8 +24,8 @@ set(TASK_DIR "${CMAKE_CURRENT_SOURCE_DIR}/task")
 
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
-set(CHASSIS_PARAM_TOML "${CHASSIS_CONFIG_DIR}/chassis.toml")
-set(CHASSIS_PARAM_GENERATOR "${CHASSIS_CONFIG_DIR}/generate_params.py")
+set(CHASSIS_PARAM_TOML "${CHASSIS_CONFIG_DIR}/params/chassis.toml")
+set(CHASSIS_PARAM_GENERATOR "${CHASSIS_CONFIG_DIR}/scripts/generate_params.py")
 set(CHASSIS_PARAM_HEADER "${CHASSIS_CONFIG_DIR}/generated/chassis_params.hpp")
 add_custom_command(
     OUTPUT "${CHASSIS_PARAM_HEADER}"
@@ -36,19 +36,6 @@ add_custom_command(
     VERBATIM
 )
 add_custom_target(generate_chassis_params ALL DEPENDS "${CHASSIS_PARAM_HEADER}")
-
-set(TOPIC_MONITOR_TOML "${USER_DIR}/debug/topic_monitor.toml")
-set(TOPIC_MONITOR_GENERATOR "${USER_DIR}/debug/generate_topic_monitor.py")
-set(TOPIC_MONITOR_HEADER "${USER_DIR}/debug/generated/topic_monitor.hpp")
-add_custom_command(
-    OUTPUT "${TOPIC_MONITOR_HEADER}"
-    COMMAND "${Python3_EXECUTABLE}" "${TOPIC_MONITOR_GENERATOR}"
-            "${TOPIC_MONITOR_TOML}" "${TOPIC_MONITOR_HEADER}"
-    DEPENDS "${TOPIC_MONITOR_GENERATOR}" "${TOPIC_MONITOR_TOML}"
-    COMMENT "Generating RTT topic monitor registry"
-    VERBATIM
-)
-add_custom_target(generate_topic_monitor ALL DEPENDS "${TOPIC_MONITOR_HEADER}")
 
 set(TASK_CONFIG_TOML "${TASK_DIR}/task.toml")
 set(TASK_GENERATOR "${TASK_DIR}/generate_task.py")
@@ -70,13 +57,11 @@ add_custom_target(generate_tasks ALL
 add_executable(${PROJECT_NAME})
 add_dependencies(${PROJECT_NAME}
     generate_chassis_params
-    generate_topic_monitor
     generate_tasks
 )
 
 target_sources(${PROJECT_NAME} PRIVATE
     "${USER_DIR}/app/buzzer/you_buzzer.cpp"
-    "${USER_DIR}/debug/topic_debug_app.cpp"
     "${USER_DIR}/app/remote/remote_app.cpp"
     "${USER_DIR}/app/chassis/body_velocity_controller.cpp"
     "${USER_DIR}/app/chassis/chassis.cpp"

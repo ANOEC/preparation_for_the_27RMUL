@@ -55,6 +55,9 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
+extern FDCAN_HandleTypeDef hfdcan1;
+extern FDCAN_HandleTypeDef hfdcan2;
+extern FDCAN_HandleTypeDef hfdcan3;
 extern DMA_HandleTypeDef hdma_uart5_rx;
 extern DMA_HandleTypeDef hdma_uart5_tx;
 extern DMA_HandleTypeDef hdma_usart1_rx;
@@ -276,6 +279,36 @@ void TIM6_DAC_IRQHandler(void)
   /* USER CODE BEGIN TIM6_DAC_IRQn 1 */
 
   /* USER CODE END TIM6_DAC_IRQn 1 */
+}
+
+void FDCAN1_IT0_IRQHandler(void)
+{
+  HAL_FDCAN_IRQHandler(&hfdcan1);
+}
+
+void FDCAN1_IT1_IRQHandler(void)
+{
+  HAL_FDCAN_IRQHandler(&hfdcan1);
+}
+
+void FDCAN2_IT0_IRQHandler(void)
+{
+  HAL_FDCAN_IRQHandler(&hfdcan2);
+}
+
+void FDCAN2_IT1_IRQHandler(void)
+{
+  HAL_FDCAN_IRQHandler(&hfdcan2);
+}
+
+void FDCAN3_IT0_IRQHandler(void)
+{
+  HAL_FDCAN_IRQHandler(&hfdcan3);
+}
+
+void FDCAN3_IT1_IRQHandler(void)
+{
+  HAL_FDCAN_IRQHandler(&hfdcan3);
 }
 
 /* USER CODE BEGIN 1 */

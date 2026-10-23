@@ -20,11 +20,12 @@ set(FIRMWARE_HAL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/hal")
 set(FIRMWARE_XR_DIR "${CMAKE_CURRENT_SOURCE_DIR}/xr")
 set(USER_DIR "${FIRMWARE_XR_DIR}/User")
 set(GIMBAL_CONFIG_DIR "${ROBOT_ROOT}/src/config/gimbal")
+set(TASK_DIR "${CMAKE_CURRENT_SOURCE_DIR}/task")
 
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
-set(GIMBAL_PARAM_TOML "${GIMBAL_CONFIG_DIR}/gimbal.toml")
-set(GIMBAL_PARAM_GENERATOR "${GIMBAL_CONFIG_DIR}/generate_params.py")
+set(GIMBAL_PARAM_TOML "${GIMBAL_CONFIG_DIR}/params/gimbal.toml")
+set(GIMBAL_PARAM_GENERATOR "${GIMBAL_CONFIG_DIR}/scripts/generate_params.py")
 set(GIMBAL_PARAM_HEADER "${GIMBAL_CONFIG_DIR}/generated/gimbal_params.hpp")
 add_custom_command(
     OUTPUT "${GIMBAL_PARAM_HEADER}"
@@ -36,11 +37,42 @@ add_custom_command(
 )
 add_custom_target(generate_gimbal_params ALL DEPENDS "${GIMBAL_PARAM_HEADER}")
 
+set(TASK_CONFIG_TOML "${GIMBAL_CONFIG_DIR}/params/task.config.toml")
+set(TASK_GENERATOR "${GIMBAL_CONFIG_DIR}/scripts/generate_task.py")
+set(TASK_GENERATED_DIR "${GIMBAL_CONFIG_DIR}/generated")
+set(TASK_GENERATED_HEADER "${TASK_GENERATED_DIR}/task_generated.hpp")
+set(TASK_GENERATED_SOURCE "${TASK_GENERATED_DIR}/task_generated.cc")
+add_custom_command(
+    OUTPUT "${TASK_GENERATED_HEADER}" "${TASK_GENERATED_SOURCE}"
+    COMMAND "${Python3_EXECUTABLE}" "${TASK_GENERATOR}"
+            "${TASK_CONFIG_TOML}" "${TASK_GENERATED_DIR}"
+    DEPENDS "${TASK_GENERATOR}" "${TASK_CONFIG_TOML}"
+    COMMENT "Generating LibXR task framework"
+    VERBATIM
+)
+add_custom_target(generate_tasks ALL
+    DEPENDS "${TASK_GENERATED_HEADER}" "${TASK_GENERATED_SOURCE}"
+)
+
 add_executable(${PROJECT_NAME})
-add_dependencies(${PROJECT_NAME} generate_gimbal_params)
+add_dependencies(${PROJECT_NAME}
+    generate_gimbal_params
+    generate_tasks
+)
+target_sources(${PROJECT_NAME} PRIVATE
+    "${USER_DIR}/app/gimbal/control.cpp"
+    "${USER_DIR}/app/gimbal/gimbal.cpp"
+    "${USER_DIR}/app/gimbal/task.cc"
+    "${USER_DIR}/app/remote/remote.cpp"
+    "${USER_DIR}/app/remote/task.cc"
+    "${TASK_DIR}/task_runtime.cpp"
+    "${TASK_GENERATED_SOURCE}"
+)
 target_include_directories(${PROJECT_NAME} PRIVATE
     "${USER_DIR}"
     "${ROBOT_ROOT}/src"
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${TASK_GENERATED_DIR}"
 )
 
 add_subdirectory(

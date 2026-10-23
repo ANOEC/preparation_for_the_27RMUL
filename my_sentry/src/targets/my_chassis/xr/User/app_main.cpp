@@ -16,7 +16,6 @@
 using namespace LibXR;
 
 /* User Code Begin 1 */
-#include "debug/topic_debug_app.hpp"
 #include "app/remote/remote_app.hpp"
 #include "task_generated.hpp"
 #include "app/buzzer/you_buzzer.hpp"
@@ -104,7 +103,6 @@ extern "C" void app_main(void)
   XR_REGISTER(fdcan3, LibXR::FDCAN);
 
   /* User Code Begin 3 */
-  static UserApp::Debug::TopicDebugApp topic_debug_app;
   static UserApp::Remote::RemoteApp remote_app;
   static UserApp::Buzzer::YouBuzzer you_buzzer(pwm_tim12_ch2);
   you_buzzer.Play();

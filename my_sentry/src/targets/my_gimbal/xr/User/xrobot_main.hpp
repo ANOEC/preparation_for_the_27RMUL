@@ -7,6 +7,7 @@
 #include "CanManager.hpp"
 #include "DJIMotor.hpp"
 #include "DMMotor.hpp"
+#include "RemoteControl.hpp"
 #include "VQFModule.hpp"
 #include "libxr.hpp"
 #include "thread.hpp"
@@ -15,7 +16,8 @@
                                            LibXR::GPIO& BMI088_GYRO_CS,
                                            LibXR::GPIO& BMI088_GYRO_INT,
                                            LibXR::PWM& pwm_tim3_ch4, LibXR::SPI& spi2,
-                                           LibXR::FDCAN& fdcan1, LibXR::FDCAN& fdcan3)
+                                           LibXR::UART& uart5, LibXR::FDCAN& fdcan1,
+                                           LibXR::FDCAN& fdcan3)
 {
   // pitch: scu-hotpot/DMMotor (User/xrobot.yaml:2)
 #line 2 "User/xrobot.yaml"
@@ -24,7 +26,7 @@
                        DMMotor::ControlMode::ONE_TO_FOUR, 10.0f, 212.415189851f, 12.5f,
 #line 12 "User/xrobot.yaml"
                        30.0f, 12.5f, "/fb/motor/pitch", "/torque/pitch", 100, 0.9184602f);
-#line 28 "User/xrobot_main.hpp"
+#line 30 "User/xrobot_main.hpp"
 
   // big_yaw: scu-hotpot/DMMotor (User/xrobot.yaml:18)
 #line 18 "User/xrobot.yaml"
@@ -33,14 +35,14 @@
                          DMMotor::ControlMode::ONE_TO_FOUR, 10.0f, 29.2724f, 12.5f, 30.0f,
 #line 29 "User/xrobot.yaml"
                          12.5f, "/fb/motor/big_yaw", "/torque/big_yaw", 100, 0.9452919f);
-#line 37 "User/xrobot_main.hpp"
+#line 39 "User/xrobot_main.hpp"
 
   // yaw: scu-hotpot/DJIMotor (User/xrobot.yaml:34)
 #line 34 "User/xrobot.yaml"
   static DJIMotor yaw(1, DJIMotor::MotorType::GM6020, 1.0f, 57.4849f, "/fb/motor/yaw",
 #line 42 "User/xrobot.yaml"
                       "/torque/yaw", 100);
-#line 44 "User/xrobot_main.hpp"
+#line 46 "User/xrobot_main.hpp"
 
   // vqf: scu-hotpot/VQFModule<float> (User/xrobot.yaml:44)
 #line 53 "User/xrobot.yaml"
@@ -78,7 +80,7 @@
                               xr_vqf_vqf_params, 16, 4096, LibXR::Thread::Priority::HIGH,
 #line 82 "User/xrobot.yaml"
                               true);
-#line 82 "User/xrobot_main.hpp"
+#line 84 "User/xrobot_main.hpp"
 
   // canmanager: scu-hotpot/CanManager (User/xrobot.yaml:83)
 #line 86 "User/xrobot.yaml"
@@ -93,7 +95,7 @@
   static CanManager canmanager(xr_canmanager_can_buses, 1, 1024,
 #line 89 "User/xrobot.yaml"
                                LibXR::Thread::Priority::HIGH, true);
-#line 97 "User/xrobot_main.hpp"
+#line 99 "User/xrobot_main.hpp"
 
   // bmi088_0: scu-hotpot/BMI088 (User/xrobot.yaml:91)
 #line 103 "User/xrobot.yaml"
@@ -118,7 +120,14 @@
       BMI088::GyroRange::DEG_2000DPS, BMI088::AcclRange::ACCL_6G, xr_bmi088_0_rotation,
 #line 104 "User/xrobot.yaml"
       xr_bmi088_0_pid_param, "bmi088_gyro", "bmi088_accl", 50.0f, 2048);
-#line 122 "User/xrobot_main.hpp"
+#line 124 "User/xrobot_main.hpp"
+
+  // remote: scu-hotpot/RemoteControl<Module::Remote::DT7::Remote> (User/xrobot.yaml:116)
+#line 116 "User/xrobot.yaml"
+  static RemoteControl<Module::Remote::DT7::Remote> remote(
+#line 121 "User/xrobot.yaml"
+      uart5, "/remote", 1024, LibXR::Thread::Priority::MEDIUM);
+#line 131 "User/xrobot_main.hpp"
 
   for (;;)
   {
@@ -128,6 +137,7 @@
     vqf.OnMonitor();
     canmanager.OnMonitor();
     bmi088_0.OnMonitor();
+    remote.OnMonitor();
     LibXR::Thread::Sleep(1000);
   }
 }
@@ -136,7 +146,7 @@
 #define XR_REGISTER(name, ...) static_cast<void>(name)
 #define XROBOT_MAIN()                                                              \
   ::XRobotMain(BMI088_ACC_CS, BMI088_GYRO_CS, BMI088_GYRO_INT, pwm_tim3_ch4, spi2, \
-               fdcan1, fdcan3)
+               uart5, fdcan1, fdcan3)
 
 // xrobot: config "xrobot.yaml"
 // xrobot: depends "../xrobot.lock"
@@ -180,4 +190,4 @@
 // xrobot: depends "../Modules/scu-hotpot/VQFModule/Algorithm/VQF/detail/VQFCore.hpp"
 // xrobot: depends "../Modules/scu-hotpot/VQFModule/Algorithm/VQF/detail/VQFCore.tpp"
 // xrobot: depends "../Modules/scu-hotpot/VQFModule/VQFModule.hpp"
-// xrobot: digest 17a38f69108471902d29e648c2aa4c9054921b6d16d1371ea5f0436c352f88ef
+// xrobot: digest 2e73b7af21614ea557e7a494913d6dfc02f8900e5ba0ae037b39d92f30fcf547

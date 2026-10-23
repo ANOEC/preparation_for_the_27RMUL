@@ -101,12 +101,12 @@ build/Debug/firmware/my_gimbal.bin
 build/Debug/firmware/my_gimbal.map
 ```
 
-底盘参数、任务表和 RTT Topic Monitor 的生成器已经接入 CMake，修改相应 TOML 或生成脚本后直接构建即可，无需手动运行 Python：
+底盘参数、云台参数和任务表的生成器已经接入 CMake，修改相应 TOML 或生成脚本后直接构建即可，无需手动运行 Python：
 
 ```text
-src/config/chassis/chassis.toml
+src/config/chassis/params/chassis.toml
+src/config/gimbal/params/gimbal.toml
 src/targets/my_chassis/task/task.toml
-src/targets/my_chassis/xr/User/debug/topic_monitor.toml
 ```
 
 ## 4. XRobot 日常操作

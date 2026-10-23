@@ -18,6 +18,7 @@
 using namespace LibXR;
 
 /* User Code Begin 1 */
+#include "task_generated.hpp"
 /* User Code End 1 */
 
 extern FDCAN_HandleTypeDef hfdcan1;
@@ -123,6 +124,7 @@ extern "C" void app_main(void)
   XR_REGISTER(fdcan3, LibXR::FDCAN);
 
   /* User Code Begin 3 */
+  all_tasks_start();
   /* User Code End 3 */
   XROBOT_MAIN();
 }

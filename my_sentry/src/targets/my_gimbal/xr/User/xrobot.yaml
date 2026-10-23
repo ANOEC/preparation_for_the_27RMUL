@@ -113,5 +113,14 @@ modules:
       - accl_topic_name: "bmi088_accl"
       - target_temperature: 50.0f
       - task_stack_depth: 2048
+  - module: scu-hotpot/RemoteControl
+    id: remote
+    template_args:
+      - Module::Remote::DT7::Remote
+    args:
+      - sbus_uart: uart5
+      - topic_name: "/remote"
+      - thread_stack: 1024
+      - priority: LibXR::Thread::Priority::MEDIUM
 settings:
   monitor_sleep_ms: 1000

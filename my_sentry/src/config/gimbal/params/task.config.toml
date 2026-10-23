@@ -1,0 +1,19 @@
+[[tasks]]
+name = "remote_task"
+priority = "HIGH"
+stack_size = 2048
+entry_function = "remote_thread_entry"
+daemon_timeout_ms = 100
+parameters = ["nullptr", "nullptr", "nullptr"]
+delay_start = "IMMEDIATE"
+period_us = 2000
+
+[[tasks]]
+name = "gimbal_task"
+priority = "HIGH"
+stack_size = 16384
+entry_function = "gimbal_thread_entry"
+daemon_timeout_ms = 100
+parameters = ["nullptr", "nullptr", "nullptr"]
+delay_start = "IMMEDIATE"
+period_us = 1000
