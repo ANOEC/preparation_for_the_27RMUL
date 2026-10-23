@@ -1,6 +1,0 @@
-[submodule "my_gimbal/Middlewares/Third_Party/LibXR"]
-	path = my_gimbal/Middlewares/Third_Party/LibXR
-	url = https://github.com/xrobot-org/libxr.git
-[submodule "my_gimbal/lib/libht"]
-	path = my_gimbal/lib/libht
-	url = git@codeup.aliyun.com:68b19cda479007fe862e43ec/control_common/LibHT.git
