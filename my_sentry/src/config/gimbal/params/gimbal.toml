@@ -44,8 +44,8 @@ V_max_output = 9.68625    # 大 yaw 最大输出力矩，单位 N·m
 [[dual_pid.pitch]]
 P_kp = 0.0               # 位置环比例系数
 P_max_output = 16384.0    # 位置环输出限幅；当前值基本不限制速度目标
-V_kp = 5.8                # 速度环比例系数
-V_ki = 0.008              # 速度环积分系数，用于消除稳态误差
+V_kp = 1.8                # 速度环比例系数
+V_ki = 0.0              # 速度环积分系数，用于消除稳态误差
 V_max_output = 9.68625    # pitch 最大输出力矩，单位 N·m
 V_integral_limit = 20.0   # pitch 速度环积分项限幅
 
@@ -86,6 +86,16 @@ amplitude = 7.5           # 巡逻摆幅，单位 °
 period = 1.0              # 完成一次往复运动的周期，单位 s
 offset = -22.5            # 巡逻中心相对零位的偏置，单位 °
 
+# 速度环正弦跟随测试。测试仍受遥控器使能和反馈超时保护。
+# axis: 0=小 yaw (GM6020), 1=大 yaw (DM J4310), 2=pitch (DM J4310)。
+[velocity_test]
+enabled = true
+axis = 2
+frequency_hz = 0.5
+amplitude_rad_per_sec = 1.5
+offset_rad_per_sec = 0.0
+telemetry_period_ms = 10
+
 # 云台 IMU 安装和校准参数。
 [[imu]]
 horizontal_shift = 90.0       # IMU 坐标系相对云台坐标系的水平旋转角，单位 °
@@ -100,9 +110,9 @@ yaw_feedforward = 0.0          # 小 yaw 控制输出前馈系数
 big_yaw_feedforward = 0.0      # 大 yaw 控制输出前馈系数
 
 # pitch 重力补偿模型：Tg = w1·sin(pitch) + w2·cos(pitch) + w3。
-gravity_w1 = 0           # 正弦项系数，单位 N·m
-gravity_w2 = 0           # 余弦项系数，单位 N·m
-gravity_w3 = 0           # 常量偏置，单位 N·m
+gravity_w1 = 0.2825          # 正弦项系数，单位 N·m
+gravity_w2 = -0.0982           # 余弦项系数，单位 N·m
+gravity_w3 = -0.2219           # 常量偏置，单位 N·m
 
 pitch_J = 0.0084               # pitch 轴等效转动惯量，单位 kg·m²
 # pitch_J = 0.018864           # 另一组曾使用的 pitch 惯量标定值

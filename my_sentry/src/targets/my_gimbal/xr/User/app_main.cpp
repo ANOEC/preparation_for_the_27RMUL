@@ -18,7 +18,7 @@
 using namespace LibXR;
 
 /* User Code Begin 1 */
-#include "app/diagnostics/gimbal_diagnostics.hpp"
+#include "app/debug/vofa_plus_libxr.hpp"
 #include "task_generated.hpp"
 /* User Code End 1 */
 
@@ -102,15 +102,6 @@ extern "C" void app_main(void)
   usb_otg_hs.Init(false);
   usb_otg_hs.Start(false);
 
-  // Terminal on usart10
-  STDIO::read_ = usart10.read_port_;
-  STDIO::write_ = usart10.write_port_;
-  static RamFS ramfs("XRobot");
-  static Terminal<32, 32, 5, 5> terminal(ramfs);
-  static Thread term_thread;
-  term_thread.Create(&terminal, terminal.ThreadFun, "terminal", 1024,
-                     Thread::Priority::HIGH);
-
   // Hardware registration
   XR_REGISTER(power_manager, LibXR::PowerManager);
 
@@ -138,13 +129,8 @@ extern "C" void app_main(void)
   XR_REGISTER(fdcan2, LibXR::FDCAN);
   XR_REGISTER(fdcan3, LibXR::FDCAN);
 
-  XR_REGISTER(ramfs, LibXR::RamFS);
-
-  XR_REGISTER(terminal, LibXR::Terminal<32, 32, 5, 5>);
-
   /* User Code Begin 3 */
-  UserApp::Diagnostics::RegisterGimbalDiagnosticCommands(ramfs);
-  LibXR::STDIO::Printf<"\r\nLIBXR TERMINAL READY (USART10 115200 8N1)\r\n">();
+  UserApp::Debug::InitializeVofaPlus(usart10);
   all_tasks_start();
   /* User Code End 3 */
   XROBOT_MAIN();

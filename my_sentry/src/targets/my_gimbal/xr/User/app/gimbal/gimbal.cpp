@@ -4,6 +4,7 @@
 #include <cmath>
 #include <numbers>
 
+#include "app/debug/vofa_plus_libxr.hpp"
 #include "config/gimbal/generated/gimbal_params.hpp"
 
 namespace UserApp::Gimbal
@@ -21,9 +22,9 @@ PidParameters PositionParameters(const Parameters& p)
   return {.kp = p.P_kp,
           .ki = p.P_ki,
           .kd = p.P_kd,
-          .deadband = p.P_error_threshold,
-          .integral_limit = p.P_integral_limit,
-          .output_limit = p.P_max_output};
+          .error_band = p.P_error_threshold,
+          .output_limit = p.P_max_output,
+          .integral_limit = p.P_integral_limit};
 }
 
 template <typename Parameters>
@@ -32,9 +33,9 @@ PidParameters VelocityParameters(const Parameters& p)
   return {.kp = p.V_kp,
           .ki = p.V_ki,
           .kd = p.V_kd,
-          .deadband = p.V_error_threshold,
-          .integral_limit = p.V_integral_limit,
-          .output_limit = p.V_max_output};
+          .error_band = p.V_error_threshold,
+          .output_limit = p.V_max_output,
+          .integral_limit = p.V_integral_limit};
 }
 }  // namespace
 
@@ -66,6 +67,14 @@ Gimbal::Gimbal(uint32_t feedback_timeout_ms)
   pitch_controller_.Configure(PositionParameters(param::gimbal::dual_pid::pitch),
                               VelocityParameters(param::gimbal::dual_pid::pitch),
                               param::gimbal::dual_pid::pitch.P_ff);
+  REQUIRE(param::gimbal::velocity_test.axis >= 0 &&
+          param::gimbal::velocity_test.axis <= 2);
+  REQUIRE(param::gimbal::velocity_test.telemetry_period_ms > 0);
+  REQUIRE(velocity_test_wave_.setParam(
+              param::gimbal::velocity_test.frequency_hz,
+              param::gimbal::velocity_test.amplitude_rad_per_sec,
+              param::gimbal::velocity_test.offset_rad_per_sec) ==
+          Wave::ErrorCode::OK);
 
   yaw_subscriber_.StartWaiting();
   big_yaw_subscriber_.StartWaiting();
@@ -98,6 +107,13 @@ void Gimbal::Run(float dt_s, uint32_t now_ms)
     big_yaw_target_offset_ = big_yaw_.angle - yaw_.angle;
     targets_initialized_ = true;
   }
+
+  if (param::gimbal::velocity_test.enabled)
+  {
+    RunVelocityTest(dt_s, now_ms);
+    return;
+  }
+  velocity_test_running_ = false;
 
   yaw_.target += command_.yaw_offset_rad;
   // Start from big yaw's measured angle, then smoothly merge it into the
@@ -132,7 +148,89 @@ void Gimbal::Run(float dt_s, uint32_t now_ms)
   PublishTorque(yaw_.torque, big_yaw_.torque, pitch_.torque);
 }
 
+void Gimbal::RunVelocityTest(float dt_s, uint32_t now_ms)
+{
+  if (!velocity_test_running_)
+  {
+    velocity_test_wave_.reset();
+    yaw_controller_.Reset();
+    big_yaw_controller_.Reset();
+    pitch_controller_.Reset();
+    velocity_test_running_ = true;
+  }
 
+  if (velocity_test_wave_.update(dt_s) != Wave::ErrorCode::OK)
+  {
+    PublishTorque(0.0f, 0.0f, 0.0f);
+    return;
+  }
+
+  const float target_velocity = velocity_test_wave_.getOutput();
+  float actual_velocity = 0.0f;
+  float commanded_torque = 0.0f;
+  float measured_torque = 0.0f;
+  float yaw_torque = 0.0f;
+  float big_yaw_torque = 0.0f;
+  float pitch_torque = 0.0f;
+
+  switch (param::gimbal::velocity_test.axis)
+  {
+    case 0:
+      actual_velocity = yaw_.velocity;
+      commanded_torque = yaw_controller_.ComputeVelocity(
+          target_velocity, actual_velocity, dt_s);
+      measured_torque = yaw_.measured_torque;
+      yaw_torque = commanded_torque;
+      break;
+    case 1:
+      actual_velocity = big_yaw_.velocity;
+      commanded_torque = big_yaw_controller_.ComputeVelocity(
+          target_velocity, actual_velocity, dt_s);
+      measured_torque = big_yaw_.measured_torque;
+      big_yaw_torque = commanded_torque;
+      break;
+    case 2:
+      actual_velocity = pitch_.velocity;
+      commanded_torque = pitch_controller_.ComputeVelocity(
+          target_velocity, actual_velocity, dt_s);
+      measured_torque = pitch_.measured_torque;
+      pitch_torque = commanded_torque;
+      break;
+    default:
+      PublishTorque(0.0f, 0.0f, 0.0f);
+      return;
+  }
+
+  yaw_.torque = yaw_torque;
+  big_yaw_.torque = big_yaw_torque;
+  pitch_.torque = pitch_torque;
+  PublishTorque(yaw_torque, big_yaw_torque, pitch_torque);
+  SendVelocityTelemetry(now_ms, target_velocity, actual_velocity,
+                        commanded_torque, measured_torque);
+}
+
+void Gimbal::SendVelocityTelemetry(uint32_t now_ms, float target_velocity,
+                                   float actual_velocity,
+                                   float commanded_torque,
+                                   float measured_torque)
+{
+  if (static_cast<uint32_t>(now_ms - velocity_telemetry_ms_) <
+      static_cast<uint32_t>(param::gimbal::velocity_test.telemetry_period_ms))
+  {
+    return;
+  }
+  velocity_telemetry_ms_ = now_ms;
+
+  auto* vofa = UserApp::Debug::GetVofaPlus();
+  if (vofa == nullptr)
+  {
+    return;
+  }
+
+  const float channels[] = {target_velocity, actual_velocity,
+                            commanded_torque, measured_torque};
+  (void)vofa->Send(channels, 4, "speed_loop");
+}
 
 void Gimbal::ReceiveFeedback(uint32_t now_ms)
 {
@@ -142,6 +240,7 @@ void Gimbal::ReceiveFeedback(uint32_t now_ms)
     yaw_subscriber_.StartWaiting();
     yaw_motor_relative_angle_ = feedback.position_rad;
     yaw_motor_relative_velocity_ = feedback.velocity_rad_per_sec;
+    yaw_.measured_torque = feedback.torque_nm;
     yaw_feedback_ms_ = now_ms;
     yaw_received_ = true;
   }
@@ -150,8 +249,9 @@ void Gimbal::ReceiveFeedback(uint32_t now_ms)
   
   if (big_yaw_subscriber_.Available())
   {
-    (void)big_yaw_subscriber_.GetData();
+    const auto feedback = big_yaw_subscriber_.GetData();
     big_yaw_subscriber_.StartWaiting();
+    big_yaw_.measured_torque = feedback.torque_nm;
     big_yaw_feedback_ms_ = now_ms;
     big_yaw_received_ = true;
   }
@@ -160,6 +260,7 @@ void Gimbal::ReceiveFeedback(uint32_t now_ms)
     const auto feedback = pitch_subscriber_.GetData();
     pitch_subscriber_.StartWaiting();
     pitch_encoder_angle_ = feedback.position_rad;
+    pitch_.measured_torque = feedback.torque_nm;
     pitch_feedback_ms_ = now_ms;
     pitch_received_ = true;
   }
@@ -230,6 +331,8 @@ void Gimbal::UpdateAttitude(const VqfOutput<float>& imu)
 void Gimbal::EnterSafeState()
 {
   targets_initialized_ = false;
+  velocity_test_running_ = false;
+  velocity_test_wave_.reset();
   yaw_controller_.Reset();
   big_yaw_controller_.Reset();
   pitch_controller_.Reset();

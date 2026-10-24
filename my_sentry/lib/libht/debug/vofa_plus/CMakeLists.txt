@@ -1,0 +1,22 @@
+cmake_minimum_required(VERSION 3.22)
+
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+  project(vofa_plus LANGUAGES CXX)
+  include(CTest)
+endif()
+
+if(NOT TARGET libht_vofa_plus)
+  add_library(libht_vofa_plus STATIC vofa_plus.cpp)
+  add_library(LibHT::VofaPlus ALIAS libht_vofa_plus)
+  target_include_directories(libht_vofa_plus PUBLIC "${CMAKE_CURRENT_LIST_DIR}")
+  target_compile_features(libht_vofa_plus PUBLIC cxx_std_17)
+  if(CMAKE_CROSSCOMPILING AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_link_options(libht_vofa_plus INTERFACE "LINKER:-u,_printf_float")
+  endif()
+endif()
+
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR AND BUILD_TESTING)
+  add_executable(vofa_plus_test tests/vofa_plus_test.cpp)
+  target_link_libraries(vofa_plus_test PRIVATE LibHT::VofaPlus)
+  add_test(NAME vofa_plus_test COMMAND vofa_plus_test)
+endif()

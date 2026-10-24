@@ -60,6 +60,7 @@ add_dependencies(${PROJECT_NAME}
     generate_tasks
 )
 target_sources(${PROJECT_NAME} PRIVATE
+    "${USER_DIR}/app/debug/vofa_plus_libxr.cpp"
     "${USER_DIR}/app/diagnostics/gimbal_diagnostics.cpp"
     "${USER_DIR}/app/gimbal/control.cpp"
     "${USER_DIR}/app/gimbal/gimbal.cpp"
@@ -72,9 +73,16 @@ target_sources(${PROJECT_NAME} PRIVATE
 target_include_directories(${PROJECT_NAME} PRIVATE
     "${USER_DIR}"
     "${ROBOT_ROOT}/src"
+    "${ROBOT_ROOT}/lib/libht/algorithm"
     "${CMAKE_CURRENT_SOURCE_DIR}"
     "${TASK_GENERATED_DIR}"
 )
+
+add_subdirectory(
+    "${ROBOT_ROOT}/lib/libht/debug/vofa_plus"
+    "${CMAKE_CURRENT_BINARY_DIR}/LibHT/vofa_plus"
+)
+target_link_libraries(${PROJECT_NAME} PRIVATE LibHT::VofaPlus)
 
 add_subdirectory(
     "${ROBOT_ROOT}/cmake/platform/stm32"

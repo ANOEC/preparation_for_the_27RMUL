@@ -36,8 +36,8 @@ namespace param::gimbal {
             float V_error_threshold = 0.0f;
             float V_integral_limit = 20.0f;
             float V_kd = 0.0f;
-            float V_ki = 0.008f;
-            float V_kp = 5.8f;
+            float V_ki = 0.0f;
+            float V_kp = 1.8f;
             float V_max_output = 9.68625f;
         };
         inline pitch_t pitch {};
@@ -103,9 +103,9 @@ namespace param::gimbal {
         float forward_compensation_big_yaw = 0.0f;
         float forward_compensation_yaw = 0.0f;
         float gimbal_lbg_bandwidth = 30.0f;
-        int gravity_w1 = 0;
-        int gravity_w2 = 0;
-        int gravity_w3 = 0;
+        float gravity_w1 = 0.2825f;
+        float gravity_w2 = -0.0982f;
+        float gravity_w3 = -0.2219f;
         float pitch_J = 0.0084f;
         float pitch_limit_lpf_alpha = 0.2f;
         float pitch_max_vel = 4.2f;
@@ -149,5 +149,15 @@ namespace param::gimbal {
         inline yaw_t yaw {};
 
     } // namespace patrol
+
+    struct velocity_test_t {
+        float amplitude_rad_per_sec = 1.5f;
+        int axis = 2;
+        bool enabled = true;
+        float frequency_hz = 0.5f;
+        float offset_rad_per_sec = 0.0f;
+        int telemetry_period_ms = 10;
+    };
+    inline velocity_test_t velocity_test {};
 
 } // namespace param::gimbal

@@ -8,6 +8,7 @@
 #include "app/gimbal/control.hpp"
 #include "app/remote/remote.hpp"
 #include "topic.hpp"
+#include "wave/sine.hpp"
 
 namespace UserApp::Gimbal
 {
@@ -25,12 +26,17 @@ class Gimbal
     float velocity = 0.0f;
     float target = 0.0f;
     float torque = 0.0f;
+    float measured_torque = 0.0f;
   };
 
   void ReceiveFeedback(uint32_t now_ms);
   void ReceiveCommand(uint32_t now_ms);
   void UpdateAttitude(const VqfOutput<float>& imu);
   void EnterSafeState();
+  void RunVelocityTest(float dt_s, uint32_t now_ms);
+  void SendVelocityTelemetry(uint32_t now_ms, float target_velocity,
+                             float actual_velocity, float commanded_torque,
+                             float measured_torque);
   void PublishTorque(float yaw, float big_yaw, float pitch);
   bool FeedbackHealthy(uint32_t now_ms) const;
   static bool TimedOut(uint32_t now_ms, uint32_t timestamp_ms,
@@ -64,6 +70,9 @@ class Gimbal
   CascadeController yaw_controller_{};
   CascadeController big_yaw_controller_{};
   CascadeController pitch_controller_{};
+  Wave::SineWaveGenerator velocity_test_wave_{};
+  bool velocity_test_running_ = false;
+  uint32_t velocity_telemetry_ms_ = 0;
 
   LibXR::Topic::ASyncSubscriber<DJIMotor::SolvedFeedback> yaw_subscriber_;
   LibXR::Topic::ASyncSubscriber<DMMotor::SolvedFeedback> big_yaw_subscriber_;

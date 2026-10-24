@@ -24,6 +24,7 @@ option(LIBHT_BUILD_ALGORITHM "Define the Algorithm INTERFACE targets" ON)
 option(LIBHT_BUILD_CRC "Define the utility/crc target" ON)
 option(LIBHT_BUILD_RMLINK "Define the protocol/rmlink target" ON)
 option(LIBHT_BUILD_SERIALIZATION "Define the shared payload codec target" ON)
+option(LIBHT_BUILD_VOFA_PLUS "Define the VOFA+ FireWater target" ON)
 
 if(LIBHT_BUILD_SERIALIZATION OR LIBHT_BUILD_RMLINK)
   add_subdirectory(utility/serialization)
@@ -41,4 +42,8 @@ endif()
 
 if(LIBHT_BUILD_RMLINK)
   add_subdirectory(protocol/rmlink)
+endif()
+
+if(LIBHT_BUILD_VOFA_PLUS)
+  add_subdirectory(debug/vofa_plus)
 endif()
