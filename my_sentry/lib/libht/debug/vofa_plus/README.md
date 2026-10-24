@@ -156,7 +156,55 @@ speed_loop:目标角速度,实际角速度,指令力矩,反馈力矩\n
 四个通道的单位依次是 `rad/s`、`rad/s`、`N·m`、`N·m`。实际角速度使用与正常
 串级控制相同的反馈：小 yaw 和 pitch 来自 IMU，大 yaw 由 IMU 与小 yaw 编码器
 速度组合得到；“反馈力矩”是根据电机反馈电流和力矩常数换算的估算值，并非独立
-力矩传感器的直接测量值。
+力矩传感器的直接测量值。测试轴为 pitch 时，“指令力矩”是速度 PID 输出与当前
+重力补偿力矩之和；位置环不参与。
 
 修改正弦幅值、频率或测试轴后重新构建固件即可。完成速度环调参后应将
 `enabled` 改回 `false`，恢复原来的位置—速度串级控制。
+
+## Pitch 纯力矩标定
+
+`gimbal.toml` 中 `[torque_test]` 的 `enabled = true` 时，Pitch 绕过位置环、
+速度环和重力补偿；小 yaw 和大 yaw 输出零力矩。该模式与 `velocity_test` 不能同时
+启用，且仍要求电机与 IMU 反馈正常、遥控器右侧开关位于中间或上方。
+
+VOFA+ 发送一次单个力矩值即可，例如：
+
+```text
+torque:-0.3\n
+```
+
+输入单位为 N·m，并受 `max_abs_torque_nm` 限幅及
+`torque_slew_rate_nm_per_s` 斜坡限制。`input_timeout_ms = 0` 时会持续保持最后一次
+输入，直到收到新值；发送 `torque:0` 可撤销力矩。也可以把该参数设为正数，重新启用
+通信看门狗。遥控器失能、反馈超时或进入 Pitch 编码器软限位保护区时，指令立即清零；
+重新使能后不会自动恢复旧力矩，需要再次发送。
+
+固件按 `telemetry_period_ms` 输出：
+
+```text
+pitch_torque_test:目标力矩,反馈力矩,IMU实际角度\n
+```
+
+三个通道的单位依次是 N·m、N·m、rad。“反馈力矩”是电机根据电流估算的力矩，
+不是独立力矩传感器的测量值。标定完成后应将 `torque_test.enabled` 改回 `false`。
+
+## Pitch 重力补偿与零速速度环测试
+
+`gimbal.toml` 中 `[gravity_test]` 的 `enabled = true` 时，Pitch 完全绕过位置环，
+速度环目标固定为 0 rad/s。其输出为：
+
+```text
+velocity_pid(0, pitch_velocity)
+  + gravity_w1 * sin(pitch) + gravity_w2 * cos(pitch) + gravity_w3
+```
+
+该模式不能与 `torque_test` 或 `velocity_test` 同时启用，仍保留遥控器使能、反馈超时
+和最终力矩限幅。VOFA+ 输出：
+
+```text
+pitch_gravity_test:重力补偿力矩,电机反馈力矩,IMU实际角度\n
+```
+
+单位依次为 N·m、N·m、rad。退出测试时将 `gravity_test.enabled` 改回 `false`，即可
+恢复 Pitch 位置—速度串级控制与重力补偿共同输出。

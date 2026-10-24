@@ -32,7 +32,12 @@ class Gimbal
   void ReceiveFeedback(uint32_t now_ms);
   void ReceiveCommand(uint32_t now_ms);
   void UpdateAttitude(const VqfOutput<float>& imu);
+  float PitchGravityTorque() const;
   void EnterSafeState();
+  void ReceiveTorqueTestCommand(uint32_t now_ms, bool accept_command);
+  void RunTorqueTest(float dt_s, uint32_t now_ms);
+  void SendTorqueTestTelemetry(uint32_t now_ms, float target_torque);
+  void SendGravityTestTelemetry(uint32_t now_ms, float gravity_torque);
   void RunVelocityTest(float dt_s, uint32_t now_ms);
   void SendVelocityTelemetry(uint32_t now_ms, float target_velocity,
                              float actual_velocity, float commanded_torque,
@@ -73,6 +78,12 @@ class Gimbal
   Wave::SineWaveGenerator velocity_test_wave_{};
   bool velocity_test_running_ = false;
   uint32_t velocity_telemetry_ms_ = 0;
+  float torque_test_requested_nm_ = 0.0f;
+  float torque_test_applied_nm_ = 0.0f;
+  uint32_t torque_test_command_ms_ = 0;
+  uint32_t torque_test_telemetry_ms_ = 0;
+  bool torque_test_command_received_ = false;
+  uint32_t gravity_test_telemetry_ms_ = 0;
 
   LibXR::Topic::ASyncSubscriber<DJIMotor::SolvedFeedback> yaw_subscriber_;
   LibXR::Topic::ASyncSubscriber<DMMotor::SolvedFeedback> big_yaw_subscriber_;

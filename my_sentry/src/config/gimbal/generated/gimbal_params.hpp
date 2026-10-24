@@ -31,13 +31,13 @@ namespace param::gimbal {
             float P_integral_limit = 0.0f;
             float P_kd = 0.0f;
             float P_ki = 0.0f;
-            float P_kp = 0.0f;
+            float P_kp = 0.9f;
             float P_max_output = 16384.0f;
             float V_error_threshold = 0.0f;
             float V_integral_limit = 20.0f;
             float V_kd = 0.0f;
-            float V_ki = 0.0f;
-            float V_kp = 1.8f;
+            float V_ki = 0.008f;
+            float V_kp = 1.5f;
             float V_max_output = 9.68625f;
         };
         inline pitch_t pitch {};
@@ -60,6 +60,12 @@ namespace param::gimbal {
         inline yaw_t yaw {};
 
     } // namespace dual_pid
+
+    struct gravity_test_t {
+        bool enabled = true;
+        int telemetry_period_ms = 10;
+    };
+    inline gravity_test_t gravity_test {};
 
     struct imu_t {
         static constexpr float constant_temperature = 50.0f;
@@ -103,9 +109,9 @@ namespace param::gimbal {
         float forward_compensation_big_yaw = 0.0f;
         float forward_compensation_yaw = 0.0f;
         float gimbal_lbg_bandwidth = 30.0f;
-        float gravity_w1 = 0.2825f;
-        float gravity_w2 = -0.0982f;
-        float gravity_w3 = -0.2219f;
+        float gravity_w1 = 0.6243f;
+        float gravity_w2 = 0.0f;
+        float gravity_w3 = -0.6212f;
         float pitch_J = 0.0084f;
         float pitch_limit_lpf_alpha = 0.2f;
         float pitch_max_vel = 4.2f;
@@ -150,10 +156,20 @@ namespace param::gimbal {
 
     } // namespace patrol
 
+    struct torque_test_t {
+        bool enabled = false;
+        int input_timeout_ms = 0;
+        float limit_margin_deg = 2.0f;
+        float max_abs_torque_nm = 9.0f;
+        int telemetry_period_ms = 10;
+        float torque_slew_rate_nm_per_s = 3.0f;
+    };
+    inline torque_test_t torque_test {};
+
     struct velocity_test_t {
         float amplitude_rad_per_sec = 1.5f;
         int axis = 2;
-        bool enabled = true;
+        bool enabled = false;
         float frequency_hz = 0.5f;
         float offset_rad_per_sec = 0.0f;
         int telemetry_period_ms = 10;
