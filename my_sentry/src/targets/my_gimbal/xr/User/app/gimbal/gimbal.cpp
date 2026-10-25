@@ -13,7 +13,7 @@ namespace
 {
 constexpr float kTwoPi = 2.0f * std::numbers::pi_v<float>;
 constexpr float kPitchUpLimit = 29.5f * std::numbers::pi_v<float> / 180.0f;
-constexpr float kPitchDownLimit = -35.5f * std::numbers::pi_v<float> / 180.0f;
+constexpr float kPitchDownLimit = -8.5f * std::numbers::pi_v<float> / 180.0f;
 constexpr float kBigYawAlignmentRate = 1.0f;  // rad/s
 constexpr float kDegreesToRadians = std::numbers::pi_v<float> / 180.0f;
 
@@ -83,6 +83,7 @@ Gimbal::Gimbal(uint32_t feedback_timeout_ms)
   REQUIRE(param::gimbal::torque_test.telemetry_period_ms > 0);
   REQUIRE(param::gimbal::torque_test.limit_margin_deg >= 0.0f);
   REQUIRE(param::gimbal::gravity_test.telemetry_period_ms > 0);
+  REQUIRE(param::gimbal::position_telemetry.period_ms > 0);
   REQUIRE(velocity_test_wave_.setParam(
               param::gimbal::velocity_test.frequency_hz,
               param::gimbal::velocity_test.amplitude_rad_per_sec,
@@ -184,6 +185,10 @@ void Gimbal::Run(float dt_s, uint32_t now_ms)
   if (param::gimbal::gravity_test.enabled)
   {
     SendGravityTestTelemetry(now_ms, pitch_.torque);
+  }
+  else if (param::gimbal::position_telemetry.enabled)
+  {
+    SendPitchPositionTelemetry(now_ms);
   }
 }
 
@@ -307,6 +312,28 @@ void Gimbal::SendGravityTestTelemetry(uint32_t now_ms, float gravity_torque)
       pitch_.angle,
   };
   (void)vofa->Send(channels, 3, "pitch_gravity_test");
+}
+
+void Gimbal::SendPitchPositionTelemetry(uint32_t now_ms)
+{
+  if (static_cast<uint32_t>(now_ms - position_telemetry_ms_) <
+      static_cast<uint32_t>(param::gimbal::position_telemetry.period_ms))
+  {
+    return;
+  }
+  position_telemetry_ms_ = now_ms;
+
+  auto* vofa = UserApp::Debug::GetVofaPlus();
+  if (vofa == nullptr)
+  {
+    return;
+  }
+
+  const float channels[] = {
+      pitch_.target,
+      pitch_.angle,
+  };
+  (void)vofa->Send(channels, 2, "pitch_position");
 }
 
 void Gimbal::RunVelocityTest(float dt_s, uint32_t now_ms)

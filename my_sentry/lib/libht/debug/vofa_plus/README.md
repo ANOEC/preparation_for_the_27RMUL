@@ -208,3 +208,16 @@ pitch_gravity_test:重力补偿力矩,电机反馈力矩,IMU实际角度\n
 
 单位依次为 N·m、N·m、rad。退出测试时将 `gravity_test.enabled` 改回 `false`，即可
 恢复 Pitch 位置—速度串级控制与重力补偿共同输出。
+
+## Pitch 位置双环遥测
+
+正常位置—速度串级控制时，设置 `position_telemetry.enabled = true`，固件按
+`period_ms` 输出：
+
+```text
+pitch_position:目标位置,实际位置\n
+```
+
+两个通道的单位都是 rad。目标位置是遥控器输入累计后、经过机械软限位约束的最终
+Pitch 目标；实际位置来自云台 IMU。纯力矩、速度正弦或重力测试模式运行时不会输出
+该帧。
