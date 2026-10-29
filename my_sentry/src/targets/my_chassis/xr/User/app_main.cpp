@@ -29,11 +29,13 @@ extern SPI_HandleTypeDef hspi2;
 extern TIM_HandleTypeDef htim3;
 extern TIM_HandleTypeDef htim6;
 extern TIM_HandleTypeDef htim12;
+extern UART_HandleTypeDef huart5;
 extern UART_HandleTypeDef huart10;
 
 // DMA buffers (STM32H723VG: D-cache, 32-byte lines)
 alignas(32) static uint8_t spi2_rx_buf[32] __attribute__((section(".dma_buffer")));
 alignas(32) static uint8_t spi2_tx_buf[32] __attribute__((section(".dma_buffer")));
+alignas(32) static uint8_t uart5_rx_buf[128];
 alignas(32) static uint8_t usart10_rx_buf[128] __attribute__((section(".dma_buffer")));
 alignas(32) static uint8_t usart10_tx_buf[128] __attribute__((section(".dma_buffer")));
 
@@ -62,6 +64,7 @@ extern "C" void app_main(void)
 
   // SPI, UART, CAN
   static STM32SPI spi2(&hspi2, spi2_rx_buf, spi2_tx_buf, 3);
+  static STM32UART uart5(&huart5, uart5_rx_buf, {nullptr, 0}, 5);
   static STM32UART usart10(&huart10, usart10_rx_buf, usart10_tx_buf, 5);
   static STM32CANFD fdcan1(&hfdcan1, 5);
   LibXR::CAN& can1 = fdcan1;
@@ -84,6 +87,7 @@ extern "C" void app_main(void)
 
   XR_REGISTER(spi2, LibXR::SPI);
 
+  XR_REGISTER(uart5, LibXR::UART);
   XR_REGISTER(usart10, LibXR::UART);
 
   XR_REGISTER(can1, LibXR::CAN);
