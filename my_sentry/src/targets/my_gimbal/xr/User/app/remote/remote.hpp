@@ -4,17 +4,18 @@
 #include <cstdint>
 
 #include "Details/DT7/DT7.hpp"
+#include "app/communication/b2b/chassis_command.hpp"
 #include "topic.hpp"
 
 namespace UserApp::Remote
 {
 
-/** The operating state selected by the right-hand DT7 switch. */
+/** The operating state selected by the DT7 switches. */
 enum class ControlState : uint8_t
 {
   OFFLINE,
   PROTECT,
-  MANUAL,
+  HAND,
   GAME,
 };
 
@@ -31,6 +32,7 @@ struct GimbalCommand
   float pitch_offset_rad = 0.0f;
   ControlState state = ControlState::OFFLINE;
   bool enabled = false;
+  bool patrol = false;
 };
 
 /**
@@ -45,6 +47,7 @@ class Remote
   explicit Remote(
       const char* remote_topic_name = "/remote",
       const char* gimbal_topic_name = "/cmd/gimbal",
+      const char* chassis_topic_name = "/cmd/chassis",
       uint32_t offline_timeout_ms = 500);
 
   /** Execute one non-blocking receive, safety-check and publish cycle. */
@@ -60,15 +63,19 @@ class Remote
   static bool IsRemoteDataValid(const RemoteData& data);
   static float NormalizeChannel(int16_t channel);
   static GimbalCommand BuildCommand(const RemoteData& data);
+  static Command::ChassisCommand BuildChassisCommand(const RemoteData& data);
   static GimbalCommand BuildSafeCommand(ControlState state);
   bool IsTimedOut(uint32_t now_ms, uint32_t last_valid_ms) const;
 
   uint32_t offline_timeout_ms_;
   LibXR::Topic::ASyncSubscriber<RemoteData> remote_subscriber_;
   LibXR::Topic gimbal_topic_;
+  LibXR::Topic chassis_topic_;
   bool has_valid_data_ = false;
   uint32_t last_valid_ms_ = 0;
   GimbalCommand command_ = BuildSafeCommand(ControlState::OFFLINE);
+  Command::ChassisCommand chassis_command_ =
+      Command::MakeSafeChassisCommand(Command::ControlState::OFFLINE);
 };
 
 }  // namespace UserApp::Remote

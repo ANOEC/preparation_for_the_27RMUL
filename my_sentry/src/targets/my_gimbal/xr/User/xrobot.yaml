@@ -122,5 +122,35 @@ modules:
       - topic_name: "/remote"
       - thread_stack: 1024
       - priority: LibXR::Thread::Priority::MEDIUM
+  - module: scu-hotpot/DJIMotor
+    id: fri_left
+    args:
+      - id: 1
+      - type: DJIMotor::MotorType::M3508
+      - actual_total_ratio: 1.0f
+      - init_pos_degree: 0.0f
+      - topic_name: "/fb/motor/fri_left"
+      - torque_topic_name: "/torque/fri_left"
+      - command_timeout_ms: 100
+  - module: scu-hotpot/DJIMotor
+    id: fri_right
+    args:
+      - id: 2
+      - type: DJIMotor::MotorType::M3508
+      - actual_total_ratio: 1.0f
+      - init_pos_degree: 0.0f
+      - topic_name: "/fb/motor/fri_right"
+      - torque_topic_name: "/torque/fri_right"
+      - command_timeout_ms: 100
+  - module: scu-hotpot/DJIMotor
+    id: pluck
+    args:
+      - id: 3
+      - type: DJIMotor::MotorType::M2006
+      - actual_total_ratio: 36.0f
+      - init_pos_degree: 0.0f
+      - topic_name: "/fb/motor/pluck"
+      - torque_topic_name: "/torque/pluck"
+      - command_timeout_ms: 100
 settings:
   monitor_sleep_ms: 1000

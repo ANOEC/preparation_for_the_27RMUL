@@ -20,7 +20,6 @@ set(FIRMWARE_HAL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/hal")
 set(FIRMWARE_XR_DIR "${CMAKE_CURRENT_SOURCE_DIR}/xr")
 set(USER_DIR "${FIRMWARE_XR_DIR}/User")
 set(CHASSIS_CONFIG_DIR "${ROBOT_ROOT}/src/config/chassis")
-set(TASK_DIR "${CMAKE_CURRENT_SOURCE_DIR}/task")
 
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
@@ -37,11 +36,11 @@ add_custom_command(
 )
 add_custom_target(generate_chassis_params ALL DEPENDS "${CHASSIS_PARAM_HEADER}")
 
-set(TASK_CONFIG_TOML "${TASK_DIR}/task.toml")
-set(TASK_GENERATOR "${TASK_DIR}/generate_task.py")
+set(TASK_CONFIG_TOML "${CHASSIS_CONFIG_DIR}/params/task_config.toml")
+set(TASK_GENERATOR "${CHASSIS_CONFIG_DIR}/scripts/generate_task.py")
 set(TASK_GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated/task")
 set(TASK_GENERATED_HEADER "${TASK_GENERATED_DIR}/task_generated.hpp")
-set(TASK_GENERATED_SOURCE "${TASK_GENERATED_DIR}/task_generated.cpp")
+set(TASK_GENERATED_SOURCE "${TASK_GENERATED_DIR}/task_generated.cc")
 add_custom_command(
     OUTPUT "${TASK_GENERATED_HEADER}" "${TASK_GENERATED_SOURCE}"
     COMMAND "${Python3_EXECUTABLE}" "${TASK_GENERATOR}"
@@ -62,22 +61,23 @@ add_dependencies(${PROJECT_NAME}
 
 target_sources(${PROJECT_NAME} PRIVATE
     "${USER_DIR}/app/buzzer/you_buzzer.cpp"
-    "${USER_DIR}/app/remote/remote_app.cpp"
+    "${USER_DIR}/app/communication/b2b/chassis_command_link.cpp"
+    "${USER_DIR}/app/communication/b2b/task.cc"
+    "${USER_DIR}/app/communication/task.cc"
     "${USER_DIR}/app/chassis/body_velocity_controller.cpp"
     "${USER_DIR}/app/chassis/chassis.cpp"
     "${USER_DIR}/app/chassis/chassis_kinematics.cpp"
     "${USER_DIR}/app/chassis/chassis_solver.cpp"
     "${USER_DIR}/app/chassis/power_control.cpp"
     "${USER_DIR}/app/chassis/wheel_controller.cpp"
-    "${TASK_DIR}/task_runtime.cpp"
-    "${TASK_DIR}/chassis_task.cpp"
+    "${USER_DIR}/app/chassis/chassis_task.cpp"
+    "${ROBOT_ROOT}/src/task/task_runtime.cpp"
     "${TASK_GENERATED_SOURCE}"
 )
 target_include_directories(${PROJECT_NAME} PRIVATE
     "${USER_DIR}"
     "${ROBOT_ROOT}/src"
     "${CMAKE_CURRENT_SOURCE_DIR}"
-    "${TASK_DIR}"
     "${TASK_GENERATED_DIR}"
 )
 

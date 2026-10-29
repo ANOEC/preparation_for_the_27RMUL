@@ -36,8 +36,8 @@ namespace param::gimbal {
             float V_error_threshold = 0.0f;
             float V_integral_limit = 20.0f;
             float V_kd = 0.0f;
-            float V_ki = 0.008f;
-            float V_kp = 1.1f;
+            float V_ki = 0.0f;
+            float V_kp = 1.0f;
             float V_max_output = 9.68625f;
         };
         inline pitch_t pitch {};
@@ -115,6 +115,7 @@ namespace param::gimbal {
         float pitch_J = 0.0084f;
         float pitch_limit_lpf_alpha = 0.2f;
         float pitch_max_vel = 4.2f;
+        float pitch_velocity_ff_gain = 1.0f;
         float yaw_J_min = 0.018f;
         float yaw_J_w1 = 0.6460679f;
         float yaw_J_w2 = -1.1799474f;
@@ -129,12 +130,13 @@ namespace param::gimbal {
     namespace patrol {
 
         struct big_yaw_t {
-            float add_angle = 0.0055f;
+            float add_angle = 0.0005f;
         };
         inline big_yaw_t big_yaw {};
 
         struct pitch_t {
             float amplitude = 15.0f;
+            bool enabled = false;
             float offset = 10.0f;
             float period = 1.0f;
         };
@@ -148,9 +150,9 @@ namespace param::gimbal {
         inline upper_pitch_t upper_pitch {};
 
         struct yaw_t {
-            float amplitude = 45.0f;
+            float amplitude = 30.0f;
             float offset = 0.0f;
-            float period = 2.0f;
+            float period = 4.0f;
         };
         inline yaw_t yaw {};
 

@@ -13,7 +13,7 @@ namespace
 {
 constexpr float kTwoPi = 2.0f * std::numbers::pi_v<float>;
 constexpr float kPitchUpLimit = 29.5f * std::numbers::pi_v<float> / 180.0f;
-constexpr float kPitchDownLimit = -8.5f * std::numbers::pi_v<float> / 180.0f;
+constexpr float kPitchDownLimit = -25.0f * std::numbers::pi_v<float> / 180.0f;
 constexpr float kBigYawAlignmentRate = 1.0f;  // rad/s
 constexpr float kDegreesToRadians = std::numbers::pi_v<float> / 180.0f;
 
@@ -84,6 +84,37 @@ Gimbal::Gimbal(uint32_t feedback_timeout_ms)
   REQUIRE(param::gimbal::torque_test.limit_margin_deg >= 0.0f);
   REQUIRE(param::gimbal::gravity_test.telemetry_period_ms > 0);
   REQUIRE(param::gimbal::position_telemetry.period_ms > 0);
+  REQUIRE(param::gimbal::param.pitch_max_vel > 0.0f);
+  REQUIRE(param::gimbal::param.pitch_velocity_ff_gain >= 0.0f);
+  REQUIRE(param::gimbal::patrol::yaw.period > 0.0f);
+  REQUIRE(param::gimbal::patrol::pitch.period > 0.0f);
+  REQUIRE(param::gimbal::patrol::upper_pitch.period > 0.0f);
+  REQUIRE(!(param::gimbal::patrol::pitch.enabled &&
+            param::gimbal::torque_test.enabled));
+  REQUIRE(!(param::gimbal::patrol::pitch.enabled &&
+            param::gimbal::velocity_test.enabled));
+  REQUIRE(!(param::gimbal::patrol::pitch.enabled &&
+            param::gimbal::gravity_test.enabled));
+  REQUIRE(patrol_yaw_wave_.setParam(
+              1.0f / param::gimbal::patrol::yaw.period,
+              param::gimbal::patrol::yaw.amplitude * kDegreesToRadians,
+              param::gimbal::patrol::yaw.offset * kDegreesToRadians) ==
+          Wave::ErrorCode::OK);
+  REQUIRE(patrol_pitch_wave_.setParam(
+              1.0f / param::gimbal::patrol::pitch.period,
+              param::gimbal::patrol::pitch.amplitude * kDegreesToRadians,
+              param::gimbal::patrol::pitch.offset * kDegreesToRadians) ==
+          Wave::ErrorCode::OK);
+  REQUIRE(patrol_upper_pitch_wave_.setParam(
+              1.0f / param::gimbal::patrol::upper_pitch.period,
+              param::gimbal::patrol::upper_pitch.amplitude * kDegreesToRadians,
+              param::gimbal::patrol::upper_pitch.offset * kDegreesToRadians) ==
+          Wave::ErrorCode::OK);
+  REQUIRE(pitch_position_test_wave_.setParam(
+              1.0f / param::gimbal::patrol::pitch.period,
+              param::gimbal::patrol::pitch.amplitude * kDegreesToRadians,
+              param::gimbal::patrol::pitch.offset * kDegreesToRadians) ==
+          Wave::ErrorCode::OK);
   REQUIRE(velocity_test_wave_.setParam(
               param::gimbal::velocity_test.frequency_hz,
               param::gimbal::velocity_test.amplitude_rad_per_sec,
@@ -103,7 +134,7 @@ void Gimbal::Run(float dt_s, uint32_t now_ms)
   ReceiveCommand(now_ms);
 
   const bool enabled = command_received_ && command_.enabled &&
-                       (command_.state == Remote::ControlState::MANUAL ||
+                       (command_.state == Remote::ControlState::HAND ||
                         command_.state == Remote::ControlState::GAME);
   const bool feedback_healthy = FeedbackHealthy(now_ms);
   if (param::gimbal::torque_test.enabled)
@@ -141,22 +172,94 @@ void Gimbal::Run(float dt_s, uint32_t now_ms)
   }
   velocity_test_running_ = false;
 
-  yaw_.target += command_.yaw_offset_rad;
-  // Start from big yaw's measured angle, then smoothly merge it into the
-  // reference project's shared yaw target. This is bumpless even when the two
-  // encoders use different coordinate origins at the enable transition.
-  const float max_alignment_step =
-      kBigYawAlignmentRate * std::max(dt_s, 0.0f);
-  big_yaw_target_offset_ -=
-      std::clamp(big_yaw_target_offset_, -max_alignment_step,
-                 max_alignment_step);
-  big_yaw_.target = yaw_.target + big_yaw_target_offset_;
-  pitch_.target += command_.pitch_offset_rad;
+  const float previous_pitch_target = pitch_.target;
+  if (command_.patrol)
+  {
+    if (!patrol_running_)
+    {
+      patrol_yaw_wave_.reset();
+      patrol_pitch_wave_.reset();
+      patrol_upper_pitch_wave_.reset();
+      yaw_controller_.Reset();
+      big_yaw_controller_.Reset();
+      pitch_controller_.Reset();
+      patrol_running_ = true;
+    }
+
+    // Match the reference sentry: small yaw scans around the measured big-yaw
+    // heading while big yaw keeps rotating, and pitch follows its scan wave.
+    if (patrol_yaw_wave_.setOffset(
+            big_yaw_.angle +
+            param::gimbal::patrol::yaw.offset * kDegreesToRadians) !=
+            Wave::ErrorCode::OK ||
+        patrol_yaw_wave_.update(dt_s) != Wave::ErrorCode::OK ||
+        patrol_pitch_wave_.update(dt_s) != Wave::ErrorCode::OK)
+    {
+      EnterSafeState();
+      PublishTorque(0.0f, 0.0f, 0.0f);
+      return;
+    }
+
+    yaw_.target = patrol_yaw_wave_.getOutput();
+    big_yaw_.target += param::gimbal::patrol::big_yaw.add_angle;
+    pitch_.target = patrol_pitch_wave_.getOutput();
+    pitch_position_test_running_ = false;
+  }
+  else
+  {
+    patrol_running_ = false;
+    yaw_.target += command_.yaw_offset_rad;
+    // Start from big yaw's measured angle, then smoothly merge it into the
+    // reference project's shared yaw target. This is bumpless even when the
+    // two encoders use different coordinate origins at the enable transition.
+    const float max_alignment_step =
+        kBigYawAlignmentRate * std::max(dt_s, 0.0f);
+    big_yaw_target_offset_ -=
+        std::clamp(big_yaw_target_offset_, -max_alignment_step,
+                   max_alignment_step);
+    big_yaw_.target = yaw_.target + big_yaw_target_offset_;
+
+    if (param::gimbal::patrol::pitch.enabled)
+    {
+      if (!pitch_position_test_running_)
+      {
+        pitch_position_test_wave_.reset();
+        pitch_controller_.Reset();
+        pitch_position_test_running_ = true;
+      }
+      else if (pitch_position_test_wave_.update(dt_s) != Wave::ErrorCode::OK)
+      {
+        EnterSafeState();
+        PublishTorque(0.0f, 0.0f, 0.0f);
+        return;
+      }
+      const float sine_target = pitch_position_test_wave_.getOutput();
+      const float max_target_step =
+          param::gimbal::param.pitch_max_vel * std::max(dt_s, 0.0f);
+      pitch_.target += std::clamp(sine_target - pitch_.target,
+                                  -max_target_step, max_target_step);
+    }
+    else
+    {
+      pitch_position_test_running_ = false;
+      pitch_.target += command_.pitch_offset_rad;
+    }
+  }
 
   // Preserve the reference project's encoder-assisted adaptive pitch stop.
   const float pitch_offset = -pitch_encoder_angle_ - pitch_.angle;
   pitch_.target = std::clamp(pitch_.target, kPitchDownLimit - pitch_offset,
                              kPitchUpLimit - pitch_offset);
+  float pitch_velocity_feedforward = 0.0f;
+  if (dt_s > 0.0f)
+  {
+    const float target_velocity = std::clamp(
+        (pitch_.target - previous_pitch_target) / dt_s,
+        -param::gimbal::param.pitch_max_vel,
+        param::gimbal::param.pitch_max_vel);
+    pitch_velocity_feedforward =
+        param::gimbal::param.pitch_velocity_ff_gain * target_velocity;
+  }
 
   yaw_.torque = yaw_controller_.Compute(yaw_.target, yaw_.angle, yaw_.velocity,
                                         dt_s);
@@ -174,7 +277,8 @@ void Gimbal::Run(float dt_s, uint32_t now_ms)
   else
   {
     pitch_.torque = pitch_controller_.Compute(
-        pitch_.target, pitch_.angle, pitch_.velocity, dt_s);
+        pitch_.target, pitch_.angle, pitch_.velocity, dt_s,
+        pitch_velocity_feedforward);
     pitch_.torque += gravity_torque;
   }
   pitch_.torque = std::clamp(pitch_.torque,
@@ -531,6 +635,12 @@ float Gimbal::PitchGravityTorque() const
 void Gimbal::EnterSafeState()
 {
   targets_initialized_ = false;
+  patrol_running_ = false;
+  patrol_yaw_wave_.reset();
+  patrol_pitch_wave_.reset();
+  patrol_upper_pitch_wave_.reset();
+  pitch_position_test_running_ = false;
+  pitch_position_test_wave_.reset();
   velocity_test_running_ = false;
   velocity_test_wave_.reset();
   yaw_controller_.Reset();

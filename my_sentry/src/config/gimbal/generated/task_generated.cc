@@ -14,6 +14,7 @@ std::uint64_t NowUs()
 
 DaemonService remote_task_daemon("remote_task", 100U);
 DaemonService gimbal_task_daemon("gimbal_task", 100U);
+DaemonService communication_task_daemon("communication_task", 100U);
 }  // namespace
 
 LibXR::Thread remote_task_thread;
@@ -60,6 +61,28 @@ void gimbal_thread_entry(void*)
   }
 }
 
+LibXR::Thread communication_task_thread;
+
+void communication_thread_entry(void*)
+{
+  communication_task_daemon.Start();
+  TaskHooks<communication_task_tag>::init(nullptr, nullptr, nullptr);
+  std::uint64_t last_us = NowUs();
+  LoopContext context{nullptr, nullptr, nullptr, &communication_task_daemon, 0.0F,
+                      1000U, last_us, 0U};
+  LibXR::MillisecondTimestamp wake_time(
+      static_cast<std::uint32_t>(LibXR::Timebase::GetMilliseconds()));
+  for (;;)
+  {
+    LibXR::Thread::SleepUntil(wake_time, 1U);
+    context.now_us = NowUs();
+    context.dt_s = static_cast<float>(context.now_us - last_us) * 1.0e-6F;
+    last_us = context.now_us;
+    TaskHooks<communication_task_tag>::loop(context);
+    ++context.iteration;
+  }
+}
+
 }  // namespace generated::task
 
 void all_tasks_start()
@@ -77,4 +100,7 @@ void all_tasks_start()
   generated::task::gimbal_task_thread.Create(
       static_cast<void*>(nullptr), generated::task::gimbal_thread_entry,
       "gimbal_task", 16384U, LibXR::Thread::Priority::HIGH);
+  generated::task::communication_task_thread.Create(
+      static_cast<void*>(nullptr), generated::task::communication_thread_entry,
+      "communication_task", 4096U, LibXR::Thread::Priority::HIGH);
 }

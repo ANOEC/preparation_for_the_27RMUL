@@ -129,6 +129,27 @@
       uart5, "/remote", 1024, LibXR::Thread::Priority::MEDIUM);
 #line 131 "User/xrobot_main.hpp"
 
+  // fri_left: scu-hotpot/DJIMotor (User/xrobot.yaml:125)
+#line 125 "User/xrobot.yaml"
+  static DJIMotor fri_left(1, DJIMotor::MotorType::M3508, 1.0f, 0.0f,
+#line 132 "User/xrobot.yaml"
+                           "/fb/motor/fri_left", "/torque/fri_left", 100);
+#line 138 "User/xrobot_main.hpp"
+
+  // fri_right: scu-hotpot/DJIMotor (User/xrobot.yaml:135)
+#line 135 "User/xrobot.yaml"
+  static DJIMotor fri_right(2, DJIMotor::MotorType::M3508, 1.0f, 0.0f,
+#line 142 "User/xrobot.yaml"
+                            "/fb/motor/fri_right", "/torque/fri_right", 100);
+#line 145 "User/xrobot_main.hpp"
+
+  // pluck: scu-hotpot/DJIMotor (User/xrobot.yaml:145)
+#line 145 "User/xrobot.yaml"
+  static DJIMotor pluck(3, DJIMotor::MotorType::M2006, 36.0f, 0.0f, "/fb/motor/pluck",
+#line 153 "User/xrobot.yaml"
+                        "/torque/pluck", 100);
+#line 152 "User/xrobot_main.hpp"
+
   for (;;)
   {
     pitch.OnMonitor();
@@ -138,6 +159,9 @@
     canmanager.OnMonitor();
     bmi088_0.OnMonitor();
     remote.OnMonitor();
+    fri_left.OnMonitor();
+    fri_right.OnMonitor();
+    pluck.OnMonitor();
     LibXR::Thread::Sleep(1000);
   }
 }
@@ -190,4 +214,4 @@
 // xrobot: depends "../Modules/scu-hotpot/VQFModule/Algorithm/VQF/detail/VQFCore.hpp"
 // xrobot: depends "../Modules/scu-hotpot/VQFModule/Algorithm/VQF/detail/VQFCore.tpp"
 // xrobot: depends "../Modules/scu-hotpot/VQFModule/VQFModule.hpp"
-// xrobot: digest 344d7725816e2a4a0472c922ffa4a445dfcb069e239ebc92498c23901a763f98
+// xrobot: digest 8d132543581c4db5e0374ce69ee1857561f434597a3650269e4b0738a4415fb0

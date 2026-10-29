@@ -7,14 +7,17 @@ namespace UserApp::Remote
 {
 
 Remote::Remote(const char* remote_topic_name, const char* gimbal_topic_name,
-               uint32_t offline_timeout_ms)
+               const char* chassis_topic_name, uint32_t offline_timeout_ms)
     : offline_timeout_ms_(offline_timeout_ms),
       remote_subscriber_(
           LibXR::Topic::CreateTopic<RemoteData>(remote_topic_name)),
-      gimbal_topic_(LibXR::Topic::CreateTopic<GimbalCommand>(gimbal_topic_name))
+      gimbal_topic_(LibXR::Topic::CreateTopic<GimbalCommand>(gimbal_topic_name)),
+      chassis_topic_(LibXR::Topic::CreateTopic<Command::ChassisCommand>(
+          chassis_topic_name))
 {
   REQUIRE(remote_topic_name != nullptr);
   REQUIRE(gimbal_topic_name != nullptr);
+  REQUIRE(chassis_topic_name != nullptr);
   REQUIRE(offline_timeout_ms_ > 0U);
   remote_subscriber_.StartWaiting();
 }
@@ -31,16 +34,20 @@ void Remote::Run(uint32_t now_ms)
       has_valid_data_ = true;
       last_valid_ms_ = now_ms;
       command_ = BuildCommand(remote_data);
+      chassis_command_ = BuildChassisCommand(remote_data);
     }
   }
 
   if (!has_valid_data_ || IsTimedOut(now_ms, last_valid_ms_))
   {
     command_ = BuildSafeCommand(ControlState::OFFLINE);
+    chassis_command_ =
+        Command::MakeSafeChassisCommand(Command::ControlState::OFFLINE);
     has_valid_data_ = false;
   }
 
   gimbal_topic_.Publish(command_);
+  chassis_topic_.Publish(chassis_command_);
 }
 
 bool Remote::IsRemoteDataValid(const RemoteData& data)
@@ -81,6 +88,8 @@ GimbalCommand Remote::BuildCommand(const RemoteData& data)
   command.pitch_offset_rad =
       -NormalizeChannel(data.rc.ch[1]) * PITCH_STEP_DEG * DEG_TO_RAD;
 
+  command.patrol = data.rc.s[0] == Module::Remote::DT7::DOWN;
+
   switch (data.rc.s[1])
   {
     case Module::Remote::DT7::UP:
@@ -88,12 +97,53 @@ GimbalCommand Remote::BuildCommand(const RemoteData& data)
       command.enabled = true;
       break;
     case Module::Remote::DT7::MID:
-      command.state = ControlState::MANUAL;
+      command.state = ControlState::HAND;
       command.enabled = true;
       break;
     case Module::Remote::DT7::DOWN:
     default:
       command = BuildSafeCommand(ControlState::PROTECT);
+      break;
+  }
+
+  return command;
+}
+
+Command::ChassisCommand Remote::BuildChassisCommand(const RemoteData& data)
+{
+  Command::ChassisCommand command{};
+  command.vx_mps = NormalizeChannel(data.rc.ch[3]) * 3.0F;
+  command.vy_mps = -NormalizeChannel(data.rc.ch[2]) * 3.0F;
+  command.wz_rad_per_sec = 0.0F;
+
+  switch (data.rc.s[0])
+  {
+    case Module::Remote::DT7::UP:
+      command.mode = Command::ChassisMode::SPIN;
+      break;
+    case Module::Remote::DT7::MID:
+      command.mode = Command::ChassisMode::FOLLOW;
+      break;
+    case Module::Remote::DT7::DOWN:
+    default:
+      command.mode = Command::ChassisMode::PATROL;
+      break;
+  }
+
+  switch (data.rc.s[1])
+  {
+    case Module::Remote::DT7::UP:
+      command.state = Command::ControlState::GAME;
+      command.enabled = true;
+      break;
+    case Module::Remote::DT7::MID:
+      command.state = Command::ControlState::HAND;
+      command.enabled = true;
+      break;
+    case Module::Remote::DT7::DOWN:
+    default:
+      command =
+          Command::MakeSafeChassisCommand(Command::ControlState::PROTECT);
       break;
   }
 

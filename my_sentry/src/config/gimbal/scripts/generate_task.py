@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate LibXR/FreeRTOS task scaffolding from task.config.toml.
+"""Generate LibXR/FreeRTOS task scaffolding from task_config.toml.
 
 The TOML file is the source of truth: tasks may be periodic (``period_us``) or
 event driven (``trigger_sem``), and use LibXR's named priorities.

@@ -2,7 +2,8 @@
 
 本目录采用“配置描述运行方式、生成器创建任务框架、业务代码实现任务内容”的设计。
 
-`task.toml` 用于描述任务如何运行；CMake 构建时，`generate_task.py` 会读取该配置，
+`src/config/chassis/params/task_config.toml` 用于描述任务如何运行；CMake 构建时，
+`src/config/chassis/scripts/generate_task.py` 会读取该配置，
 生成 FreeRTOS/LibXR 任务创建和循环框架。业务代码只需在普通 `.cpp` 文件中实现生成的
 `TaskHooks<...>::loop()` 特化。
 
@@ -11,7 +12,7 @@
 ```text
 <构建目录>/generated/task/
 ├── task_generated.hpp
-└── task_generated.cpp
+└── task_generated.cc
 ```
 
 这些文件由构建系统自动生成，不应手动修改。
@@ -113,7 +114,7 @@ LibXR 后端支持以下优先级名称：
 
 ## 新增任务示例
 
-首先在 `task.toml` 中添加配置：
+首先在 `src/config/chassis/params/task_config.toml` 中添加配置：
 
 ```toml
 [[tasks]]
@@ -146,5 +147,6 @@ void generated::task::TaskHooks<
 }
 ```
 
-最后将新的业务 `.cpp` 文件加入 `CMakeLists.txt`。修改 `task.toml` 后再次编译，
+最后将新的业务 `.cpp` 文件加入 `CMakeLists.txt`。修改
+`src/config/chassis/params/task_config.toml` 后再次编译，
 CMake 会自动重新生成任务代码。

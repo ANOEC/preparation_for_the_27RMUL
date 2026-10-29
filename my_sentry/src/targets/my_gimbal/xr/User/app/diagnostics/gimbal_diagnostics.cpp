@@ -77,8 +77,8 @@ const char* StateName(UserApp::Remote::ControlState state)
       return "OFFLINE";
     case UserApp::Remote::ControlState::PROTECT:
       return "PROTECT";
-    case UserApp::Remote::ControlState::MANUAL:
-      return "MANUAL";
+    case UserApp::Remote::ControlState::HAND:
+      return "HAND";
     case UserApp::Remote::ControlState::GAME:
       return "GAME";
   }
@@ -272,7 +272,7 @@ class GimbalDiagnostics
     }
     else if (!command.enabled)
     {
-      LibXR::STDIO::Printf<"VERDICT: PROTECTED; set right switch UP or MID.\r\n">();
+      LibXR::STDIO::Printf<"VERDICT: PROTECTED; select a valid right-switch mode.\r\n">();
     }
     else if (!has_imu || imu_age > kFastFreshMs)
     {

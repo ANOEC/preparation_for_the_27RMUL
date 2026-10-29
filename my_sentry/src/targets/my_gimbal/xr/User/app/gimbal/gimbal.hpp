@@ -76,6 +76,12 @@ class Gimbal
   CascadeController yaw_controller_{};
   CascadeController big_yaw_controller_{};
   CascadeController pitch_controller_{};
+  Wave::SineWaveGenerator patrol_yaw_wave_{};
+  Wave::SineWaveGenerator patrol_pitch_wave_{};
+  Wave::SineWaveGenerator patrol_upper_pitch_wave_{};
+  bool patrol_running_ = false;
+  Wave::SineWaveGenerator pitch_position_test_wave_{};
+  bool pitch_position_test_running_ = false;
   Wave::SineWaveGenerator velocity_test_wave_{};
   bool velocity_test_running_ = false;
   uint32_t velocity_telemetry_ms_ = 0;

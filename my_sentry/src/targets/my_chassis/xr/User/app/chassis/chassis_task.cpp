@@ -3,19 +3,20 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <numbers>
 
 #include "DJIMotor.hpp"
 #include "VQFModule.hpp"
 #include "app/chassis/chassis.hpp"
 #include "app/chassis/chassis_config.hpp"
-#include "app/remote/remote_app.hpp"
+#include "app/communication/b2b/chassis_command.hpp"
 #include "task_generated.hpp"
 #include "timebase.hpp"
 #include "topic.hpp"
 
 namespace
 {
-using ChassisCommand = UserApp::Remote::ChassisCommand;
+using ChassisCommand = UserApp::Command::ChassisCommand;
 using MotorFeedback = DJIMotor::SolvedFeedback;
 using ImuOutput = VqfOutput<float>;
 
@@ -72,8 +73,9 @@ class ChassisInputAdapter
     app::chassis::Chassis::Command output{};
     const auto& input = command_.value;
     if (!CommandOnline(now_ms) || !input.enabled ||
-        (input.state != UserApp::Remote::ControlState::MANUAL &&
-         input.state != UserApp::Remote::ControlState::GAME))
+        !input.big_yaw_alive || !input.yaw_alive ||
+        (input.state != UserApp::Command::ControlState::HAND &&
+         input.state != UserApp::Command::ControlState::GAME))
     {
       return output;
     }
@@ -83,6 +85,8 @@ class ChassisInputAdapter
     output.wz = input.wz_rad_per_sec;
     output.mode = ConvertMode(input.mode);
     output.world_frame = false;
+    output.follow_yaw_error =
+        std::remainder(-input.big_yaw_angle_rad, 2.0f * std::numbers::pi_v<float>);
     return output;
   }
 
@@ -124,21 +128,21 @@ class ChassisInputAdapter
   {
     const auto& input = command_.value;
     return IsFresh(command_, now_ms, kCommandTimeoutMs) &&
-           input.state != UserApp::Remote::ControlState::OFFLINE &&
+           input.state != UserApp::Command::ControlState::OFFLINE &&
            std::isfinite(input.vx_mps) && std::isfinite(input.vy_mps) &&
            std::isfinite(input.wz_rad_per_sec);
   }
 
   static app::chassis::ChassisMode ConvertMode(
-      UserApp::Remote::ChassisMode mode)
+      UserApp::Command::ChassisMode mode)
   {
     switch (mode)
     {
-      case UserApp::Remote::ChassisMode::FREE:
-        return app::chassis::ChassisMode::Free;
-      case UserApp::Remote::ChassisMode::FOLLOW:
+      case UserApp::Command::ChassisMode::PATROL:
         return app::chassis::ChassisMode::Follow;
-      case UserApp::Remote::ChassisMode::SPIN:
+      case UserApp::Command::ChassisMode::FOLLOW:
+        return app::chassis::ChassisMode::Follow;
+      case UserApp::Command::ChassisMode::SPIN:
         return app::chassis::ChassisMode::Spin;
       default:
         return app::chassis::ChassisMode::Protect;

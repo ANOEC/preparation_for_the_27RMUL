@@ -78,15 +78,6 @@ modules:
       - task_stack_depth: 1024
       - task_priority: LibXR::Thread::Priority::HIGH
       - start_thread: true
-  - module: scu-hotpot/RemoteControl
-    id: remote
-    template_args:
-      - Module::Remote::DT7::Remote
-    args:
-      - sbus_uart: uart5
-      - topic_name: "/remote"
-      - thread_stack: 1024
-      - priority: LibXR::Thread::Priority::MEDIUM
   - module: scu-hotpot/VQFModule
     id: vqf
     template_args:

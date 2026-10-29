@@ -1,0 +1,108 @@
+[[default.pid]]
+kp = 0.0
+ki = 0.0
+kd = 0.0
+error_threshold = 0.0
+integral_limit = 0.0
+max_output = 0.0
+
+[[default.dual_pid]]
+P_kp = 0.0
+P_ki = 0.0
+P_kd = 0.0
+P_error_threshold = 0.0
+P_integral_limit = 0.0
+P_max_output = 0.0
+V_kp = 0.0
+V_ki = 0.0
+V_kd = 0.0
+V_error_threshold = 0.0
+V_integral_limit = 0.0
+V_max_output = 0.0
+
+[[default.ladrc]]
+b0 = 1.0
+ts = 0.01
+output_limit = 0.0
+r = 0.0
+
+[[default.leso]]
+b0 = 1.0
+omega = 10.0
+
+[[default.shoot_smc]]
+J_ = 0.001
+c_ = 0.0
+k1_ = 0.0
+k2_ = 0.0
+output_limit_ = 0.0
+r_ = 0.0
+w0 = 0.0
+use_ref_ff = true
+use_leso_ff = false
+
+[[pid.fri_left]]
+kp = 0.001
+kd = 0.015
+max_output = 0.3157894736842
+
+[[pid.fri_right]]
+kp = 0.001
+kd = 0.015
+max_output = 0.3157894736842
+
+[[dual_pid.pluck]]
+P_kp = 14.0
+P_max_output = 20.0
+V_kp = 0.062
+V_ki = 0.01
+V_ki_buff = 0.0
+V_integral_limit = 10.0
+V_max_output = 1.8
+
+[[ladrc.pluck]]
+b0 = 98.0
+wc = 3.0
+w0 = 120.0
+output_limit = 1.8
+learn_rate = 0.2
+huge_resistance_threshold = 1e6
+
+[[leso.pluck]]
+b0 = 98.0
+omega = 120.0
+
+[[shoot_smc.fri_left]]
+J_ = 2.44e-5
+c_ = 42.0
+k1_ = 10.0
+k2_ = 0.0
+output_limit_ = 0.3157894736842
+r_ = 150.0
+w0 = 200.0
+
+[[shoot_smc.fri_right]]
+J_ = 2.45e-5
+c_ = 42.0
+k1_ = 10.0
+k2_ = 0.0
+output_limit_ = 0.3157894736842
+r_ = 150.0
+w0 = 200.0
+
+[[basic_param]]
+fri_basic_speed = 630.0
+pluck_basic_speed = 14.0
+pluck_reverse_speed = -0.35
+pluck_overload_effort = 0.38
+pluck_overload_check_time = 0.35
+pluck_reverse_time = 1.0
+fri_count_decline_vel = 605.0
+fri_count_rise_vel = 615.0
+shoot_heat_per = 10
+amount_pellet_per_round = 9
+pluck_reverse_angle = 15.0
+fri_ramp_rate = 3.0
+
+fri_left_J = 2.44e-5
+fri_right_J = 2.45e-5

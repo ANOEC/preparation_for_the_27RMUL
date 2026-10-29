@@ -7,7 +7,6 @@
 #include "CanManager.hpp"
 #include "DJIMotor.hpp"
 #include "RTTLogger.hpp"
-#include "RemoteControl.hpp"
 #include "VQFModule.hpp"
 #include "libxr.hpp"
 #include "thread.hpp"
@@ -16,12 +15,12 @@
                                            LibXR::GPIO& BMI088_GYRO_CS,
                                            LibXR::GPIO& BMI088_GYRO_INT,
                                            LibXR::PWM& pwm_tim3_ch4, LibXR::SPI& spi2,
-                                           LibXR::UART& uart5, LibXR::FDCAN& fdcan2)
+                                           LibXR::FDCAN& fdcan2)
 {
   // rtt_logger: scu-hotpot/RTTLogger (User/xrobot.yaml:4)
 #line 4 "User/xrobot.yaml"
   static RTTLogger rtt_logger;
-#line 25 "User/xrobot_main.hpp"
+#line 24 "User/xrobot_main.hpp"
 
   // bmi088: scu-hotpot/BMI088 (User/xrobot.yaml:8)
 #line 20 "User/xrobot.yaml"
@@ -46,7 +45,7 @@
                        BMI088::AcclRange::ACCL_6G, xr_bmi088_rotation,
 #line 21 "User/xrobot.yaml"
                        xr_bmi088_pid_param, "bmi088_gyro", "bmi088_accl", 50.0f, 2048);
-#line 50 "User/xrobot_main.hpp"
+#line 49 "User/xrobot_main.hpp"
 
   // chassis_motor1: scu-hotpot/DJIMotor (User/xrobot.yaml:33)
 #line 33 "User/xrobot.yaml"
@@ -55,7 +54,7 @@
                                  "/fb/motor/chassis_motor1", "/torque/chassis_motor1",
 #line 42 "User/xrobot.yaml"
                                  100);
-#line 59 "User/xrobot_main.hpp"
+#line 58 "User/xrobot_main.hpp"
 
   // chassis_motor2: scu-hotpot/DJIMotor (User/xrobot.yaml:43)
 #line 43 "User/xrobot.yaml"
@@ -64,7 +63,7 @@
                                  "/fb/motor/chassis_motor2", "/torque/chassis_motor2",
 #line 52 "User/xrobot.yaml"
                                  100);
-#line 68 "User/xrobot_main.hpp"
+#line 67 "User/xrobot_main.hpp"
 
   // chassis_motor3: scu-hotpot/DJIMotor (User/xrobot.yaml:53)
 #line 53 "User/xrobot.yaml"
@@ -73,7 +72,7 @@
                                  "/fb/motor/chassis_motor3", "/torque/chassis_motor3",
 #line 62 "User/xrobot.yaml"
                                  100);
-#line 77 "User/xrobot_main.hpp"
+#line 76 "User/xrobot_main.hpp"
 
   // chassis_motor4: scu-hotpot/DJIMotor (User/xrobot.yaml:63)
 #line 63 "User/xrobot.yaml"
@@ -82,7 +81,7 @@
                                  "/fb/motor/chassis_motor4", "/torque/chassis_motor4",
 #line 72 "User/xrobot.yaml"
                                  100);
-#line 86 "User/xrobot_main.hpp"
+#line 85 "User/xrobot_main.hpp"
 
   // can_manager: scu-hotpot/CanManager (User/xrobot.yaml:73)
 #line 76 "User/xrobot.yaml"
@@ -99,17 +98,10 @@
   static CanManager can_manager(xr_can_manager_can_buses, 1, 1024,
 #line 79 "User/xrobot.yaml"
                                 LibXR::Thread::Priority::HIGH, true);
-#line 103 "User/xrobot_main.hpp"
+#line 102 "User/xrobot_main.hpp"
 
-  // remote: scu-hotpot/RemoteControl<Module::Remote::DT7::Remote> (User/xrobot.yaml:81)
-#line 81 "User/xrobot.yaml"
-  static RemoteControl<Module::Remote::DT7::Remote> remote(
-#line 86 "User/xrobot.yaml"
-      uart5, "/remote", 1024, LibXR::Thread::Priority::MEDIUM);
-#line 110 "User/xrobot_main.hpp"
-
-  // vqf: scu-hotpot/VQFModule<float> (User/xrobot.yaml:90)
-#line 99 "User/xrobot.yaml"
+  // vqf: scu-hotpot/VQFModule<float> (User/xrobot.yaml:81)
+#line 90 "User/xrobot.yaml"
   static const VQF::Params<float> xr_vqf_vqf_params = {
       .tauAcc = float(3.0),
       .tauMag = float(9.0),
@@ -136,15 +128,15 @@
       .magMinUndisturbedTime = float(0.5),
       .magMaxRejectionTime = float(60.0),
       .magRejectionFactor = float(2.0),
-#line 99 "User/xrobot.yaml"
-  };
 #line 90 "User/xrobot.yaml"
+  };
+#line 81 "User/xrobot.yaml"
   static VQFModule<float> vqf("bmi088_accl", "bmi088_gyro", "vqf_output", float(0.0005),
-#line 99 "User/xrobot.yaml"
+#line 90 "User/xrobot.yaml"
                               xr_vqf_vqf_params, 16, 4096, LibXR::Thread::Priority::HIGH,
-#line 128 "User/xrobot.yaml"
+#line 119 "User/xrobot.yaml"
                               true);
-#line 148 "User/xrobot_main.hpp"
+#line 140 "User/xrobot_main.hpp"
 
   for (;;)
   {
@@ -155,7 +147,6 @@
     chassis_motor3.OnMonitor();
     chassis_motor4.OnMonitor();
     can_manager.OnMonitor();
-    remote.OnMonitor();
     vqf.OnMonitor();
     LibXR::Thread::Sleep(500);
   }
@@ -165,7 +156,7 @@
 #define XR_REGISTER(name, ...) static_cast<void>(name)
 #define XROBOT_MAIN()                                                                \
   ::XRobotMain(BMI088_ACCEL_CS, BMI088_GYRO_CS, BMI088_GYRO_INT, pwm_tim3_ch4, spi2, \
-               uart5, fdcan2)
+               fdcan2)
 
 // xrobot: config "xrobot.yaml"
 // xrobot: depends "../xrobot.lock"
@@ -209,4 +200,4 @@
 // xrobot: depends "../Modules/scu-hotpot/VQFModule/Algorithm/VQF/detail/VQFCore.hpp"
 // xrobot: depends "../Modules/scu-hotpot/VQFModule/Algorithm/VQF/detail/VQFCore.tpp"
 // xrobot: depends "../Modules/scu-hotpot/VQFModule/VQFModule.hpp"
-// xrobot: digest 591ca58c0037cce1e74c514f8ce91d2ba1d7adac94de58b6c22f8cb923d7bc7a
+// xrobot: digest 8c51e45bb03e9d77c5df7f940010173f52e543da3038d6c34605ce93b9344629
