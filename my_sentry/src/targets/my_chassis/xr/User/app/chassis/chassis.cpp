@@ -97,9 +97,14 @@ const Chassis::Output& Chassis::update(float dt)
     ChassisVelocity target {command_.vx, command_.vy, command_.wz};
     if (command_.world_frame) target = ChassisKinematics::world_to_body(target, feedback_.chassis_yaw);
     if (output_.active_mode == ChassisMode::Follow) {
-        const float derivative = (command_.follow_yaw_error - previous_follow_error_) / dt;
+        // The follow gains come directly from the reference project's discrete PID.
+        // Its D term acts on the per-cycle error delta, not error delta per second.
+        // Dividing by the 1 ms control period amplifies encoder quantisation by about
+        // 1000 times and makes the requested yaw rate chatter between its limits.
+        const float error_delta = std::remainder(
+            command_.follow_yaw_error - previous_follow_error_, 2.0f * kPi);
         target.wz = std::clamp(config_.follow_kp * command_.follow_yaw_error +
-                               config_.follow_kd * derivative,
+                               config_.follow_kd * error_delta,
                                -config_.follow_output_limit, config_.follow_output_limit);
         previous_follow_error_ = command_.follow_yaw_error;
     } else if (output_.active_mode == ChassisMode::Spin) {
