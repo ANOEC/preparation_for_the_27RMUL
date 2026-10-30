@@ -51,6 +51,21 @@ Gimbal::Gimbal(uint32_t feedback_timeout_ms)
       imu_subscriber_(LibXR::Topic::CreateTopic<VqfOutput<float>>("vqf_output")),
       command_subscriber_(LibXR::Topic::CreateTopic<Remote::GimbalCommand>(
           "/cmd/gimbal")),
+      vision_command_subscriber_(
+          LibXR::Topic::CreateTopic<Host::GimbalCommand>("/vision_cmd")),
+      nav_mode_subscriber_(
+          LibXR::Topic::CreateTopic<std::uint64_t>("/vision_nav_mode")),
+      robot_status_subscriber_(
+          LibXR::Topic::CreateTopic<RefereeProtocol::RobotStatus>(
+              "regular/cmd/0201/rx", &referee_domain_)),
+      robot_shoot_subscriber_(
+          LibXR::Topic::CreateTopic<RefereeProtocol::RobotShoot>(
+              "regular/cmd/0207/rx", &referee_domain_)),
+      projectile_allowance_subscriber_(
+          LibXR::Topic::CreateTopic<RefereeProtocol::ProjectileAllowance>(
+              "regular/cmd/0208/rx", &referee_domain_)),
+      vision_state_topic_(
+          LibXR::Topic::CreateTopic<Host::GimbalState>("/vision_state")),
       yaw_torque_topic_(LibXR::Topic::CreateTopic<float>("/torque/yaw")),
       big_yaw_torque_topic_(LibXR::Topic::CreateTopic<DMMotor::ControlCommand>(
           "/torque/big_yaw")),
@@ -126,12 +141,19 @@ Gimbal::Gimbal(uint32_t feedback_timeout_ms)
   pitch_subscriber_.StartWaiting();
   imu_subscriber_.StartWaiting();
   command_subscriber_.StartWaiting();
+  vision_command_subscriber_.StartWaiting();
+  nav_mode_subscriber_.StartWaiting();
+  robot_status_subscriber_.StartWaiting();
+  robot_shoot_subscriber_.StartWaiting();
+  projectile_allowance_subscriber_.StartWaiting();
 }
 
 void Gimbal::Run(float dt_s, uint32_t now_ms)
 {
   ReceiveFeedback(now_ms);
   ReceiveCommand(now_ms);
+  ReceiveHostAndReferee(now_ms);
+  PublishVisionState();
 
   const bool enabled = command_received_ && command_.enabled &&
                        (command_.state == Remote::ControlState::HAND ||
@@ -173,7 +195,23 @@ void Gimbal::Run(float dt_s, uint32_t now_ms)
   velocity_test_running_ = false;
 
   const float previous_pitch_target = pitch_.target;
-  if (command_.patrol)
+  float yaw_velocity_feedforward = 0.0f;
+  float big_yaw_velocity_feedforward = 0.0f;
+  float pitch_velocity_feedforward = 0.0f;
+  float yaw_acceleration_feedforward = 0.0f;
+  float pitch_acceleration_feedforward = 0.0f;
+
+  const bool game_mode = command_.state == Remote::ControlState::GAME;
+  const bool vision_fresh = vision_command_received_ &&
+                            !TimedOut(now_ms, vision_command_ms_, HOST_TIMEOUT_MS);
+  const bool nav_fresh = nav_mode_received_ &&
+                         !TimedOut(now_ms, nav_mode_ms_, HOST_TIMEOUT_MS);
+  const bool vision_patrol = game_mode && vision_fresh &&
+                             vision_command_.mode == 2U;
+  const bool manual_patrol = !game_mode && command_.patrol;
+  const bool patrol_requested = vision_patrol || manual_patrol;
+
+  if (patrol_requested)
   {
     if (!patrol_running_)
     {
@@ -186,14 +224,15 @@ void Gimbal::Run(float dt_s, uint32_t now_ms)
       patrol_running_ = true;
     }
 
-    // Match the reference sentry: small yaw scans around the measured big-yaw
-    // heading while big yaw keeps rotating, and pitch follows its scan wave.
+    auto& pitch_wave = (vision_patrol && nav_fresh && ((nav_mode_ & 0x01ULL) != 0ULL))
+                           ? patrol_upper_pitch_wave_
+                           : patrol_pitch_wave_;
     if (patrol_yaw_wave_.setOffset(
             big_yaw_.angle +
             param::gimbal::patrol::yaw.offset * kDegreesToRadians) !=
             Wave::ErrorCode::OK ||
         patrol_yaw_wave_.update(dt_s) != Wave::ErrorCode::OK ||
-        patrol_pitch_wave_.update(dt_s) != Wave::ErrorCode::OK)
+        pitch_wave.update(dt_s) != Wave::ErrorCode::OK)
     {
       EnterSafeState();
       PublishTorque(0.0f, 0.0f, 0.0f);
@@ -202,16 +241,74 @@ void Gimbal::Run(float dt_s, uint32_t now_ms)
 
     yaw_.target = patrol_yaw_wave_.getOutput();
     big_yaw_.target += param::gimbal::patrol::big_yaw.add_angle;
-    pitch_.target = patrol_pitch_wave_.getOutput();
+    pitch_.target = pitch_wave.getOutput();
     pitch_position_test_running_ = false;
+  }
+  else if (game_mode)
+  {
+    patrol_running_ = false;
+    pitch_position_test_running_ = false;
+
+    if (vision_fresh && vision_command_.mode == 1U)
+    {
+      // Match the senior project's active auto-aim path: extrapolate a fresh
+      // host reference for at most 50 ms and forward velocity/acceleration.
+      const auto age_ms = static_cast<std::uint32_t>(now_ms - vision_command_ms_);
+      const float extrapolation_s =
+          static_cast<float>(std::min(age_ms, VISION_EXTRAPOLATION_LIMIT_MS)) *
+          0.001f;
+      const float predicted_yaw =
+          vision_command_.yaw + vision_command_.yaw_vel * extrapolation_s;
+      const float predicted_pitch =
+          vision_command_.pitch + vision_command_.pitch_vel * extrapolation_s;
+
+      // Prevent the small-yaw stage from continuing to wind up when its
+      // relative angle becomes too large. The reference project enters this
+      // protection at 45 degrees and releases below 10 degrees.
+      const float relative_yaw = std::abs(yaw_motor_relative_angle_);
+      if (!vision_yaw_over_ && relative_yaw > 45.0f * kDegreesToRadians)
+      {
+        vision_yaw_over_ = true;
+        vision_yaw_hold_target_ = yaw_.angle;
+      }
+      else if (vision_yaw_over_ && relative_yaw < 10.0f * kDegreesToRadians)
+      {
+        vision_yaw_over_ = false;
+      }
+
+      const float desired_yaw =
+          NearestEquivalentAngle(predicted_yaw, yaw_.angle);
+      yaw_.target = vision_yaw_over_ ? vision_yaw_hold_target_ : desired_yaw;
+      big_yaw_target_offset_ = 0.0f;
+      big_yaw_.target = yaw_.target;
+      pitch_.target = predicted_pitch;
+      yaw_velocity_feedforward =
+          vision_yaw_over_ ? 0.0f : std::clamp(vision_command_.yaw_vel,
+              -param::gimbal::param.yaw_max_vel,
+               param::gimbal::param.yaw_max_vel);
+      big_yaw_velocity_feedforward = 0.0f;
+      pitch_velocity_feedforward = std::clamp(vision_command_.pitch_vel,
+          -param::gimbal::param.pitch_max_vel,
+           param::gimbal::param.pitch_max_vel);
+      yaw_acceleration_feedforward =
+          vision_yaw_over_ ? 0.0f : vision_command_.yaw_acc;
+      pitch_acceleration_feedforward = vision_command_.pitch_acc;
+    }
+    else
+    {
+      vision_yaw_over_ = false;
+      // No valid visual target: hold the current measured pose instead of reusing
+      // an expired command. This is the safe equivalent of the reference timeout.
+      yaw_.target = yaw_.angle;
+      big_yaw_.target = big_yaw_.angle;
+      pitch_.target = pitch_.angle;
+      big_yaw_target_offset_ = big_yaw_.angle - yaw_.angle;
+    }
   }
   else
   {
     patrol_running_ = false;
     yaw_.target += command_.yaw_offset_rad;
-    // Start from big yaw's measured angle, then smoothly merge it into the
-    // reference project's shared yaw target. This is bumpless even when the
-    // two encoders use different coordinate origins at the enable transition.
     const float max_alignment_step =
         kBigYawAlignmentRate * std::max(dt_s, 0.0f);
     big_yaw_target_offset_ -=
@@ -250,8 +347,7 @@ void Gimbal::Run(float dt_s, uint32_t now_ms)
   const float pitch_offset = -pitch_encoder_angle_ - pitch_.angle;
   pitch_.target = std::clamp(pitch_.target, kPitchDownLimit - pitch_offset,
                              kPitchUpLimit - pitch_offset);
-  float pitch_velocity_feedforward = 0.0f;
-  if (dt_s > 0.0f)
+  if (!(game_mode && vision_fresh && vision_command_.mode == 1U) && dt_s > 0.0f)
   {
     const float target_velocity = std::clamp(
         (pitch_.target - previous_pitch_target) / dt_s,
@@ -262,9 +358,11 @@ void Gimbal::Run(float dt_s, uint32_t now_ms)
   }
 
   yaw_.torque = yaw_controller_.Compute(yaw_.target, yaw_.angle, yaw_.velocity,
-                                        dt_s);
+                                        dt_s, yaw_velocity_feedforward,
+                                        yaw_acceleration_feedforward);
   big_yaw_.torque = big_yaw_controller_.Compute(
-      big_yaw_.target, big_yaw_.angle, big_yaw_.velocity, dt_s);
+      big_yaw_.target, big_yaw_.angle, big_yaw_.velocity, dt_s,
+      big_yaw_velocity_feedforward);
   const float gravity_torque = PitchGravityTorque();
   if (param::gimbal::gravity_test.enabled)
   {
@@ -278,7 +376,7 @@ void Gimbal::Run(float dt_s, uint32_t now_ms)
   {
     pitch_.torque = pitch_controller_.Compute(
         pitch_.target, pitch_.angle, pitch_.velocity, dt_s,
-        pitch_velocity_feedforward);
+        pitch_velocity_feedforward, pitch_acceleration_feedforward);
     pitch_.torque += gravity_torque;
   }
   pitch_.torque = std::clamp(pitch_.torque,
@@ -586,6 +684,72 @@ void Gimbal::ReceiveCommand(uint32_t now_ms)
   command_received_ = true;
 }
 
+void Gimbal::ReceiveHostAndReferee(uint32_t now_ms)
+{
+  if (vision_command_subscriber_.Available())
+  {
+    vision_command_ = vision_command_subscriber_.GetData();
+    vision_command_subscriber_.StartWaiting();
+    vision_command_ms_ = now_ms;
+    vision_command_received_ = true;
+  }
+  if (nav_mode_subscriber_.Available())
+  {
+    nav_mode_ = nav_mode_subscriber_.GetData();
+    nav_mode_subscriber_.StartWaiting();
+    nav_mode_ms_ = now_ms;
+    nav_mode_received_ = true;
+  }
+  if (robot_status_subscriber_.Available())
+  {
+    robot_status_ = robot_status_subscriber_.GetData();
+    robot_status_subscriber_.StartWaiting();
+  }
+  if (robot_shoot_subscriber_.Available())
+  {
+    robot_shoot_ = robot_shoot_subscriber_.GetData();
+    robot_shoot_subscriber_.StartWaiting();
+  }
+  if (projectile_allowance_subscriber_.Available())
+  {
+    projectile_allowance_ = projectile_allowance_subscriber_.GetData();
+    projectile_allowance_subscriber_.StartWaiting();
+  }
+}
+
+void Gimbal::PublishVisionState()
+{
+  Host::GimbalState state{};
+  state.yaw = yaw_.angle;
+  state.yaw_vel = yaw_.velocity;
+  state.pitch = pitch_.angle;
+  state.pitch_vel = pitch_.velocity;
+  state.enemy_color = robot_status_.robot_id > 99U ? 'R' : 'B';
+  state.big_yaw_relative_to_yaw_angle = yaw_motor_relative_angle_;
+  state.bullet_speed = robot_shoot_.initial_speed;
+  state.bullet_count = projectile_allowance_.projectile_allowance_17mm;
+
+  const float half_roll = roll_angle_ * 0.5f;
+  const float half_pitch = pitch_.angle * 0.5f;
+  const float half_yaw = std::remainder(yaw_.angle, kTwoPi) * 0.5f;
+  const float cr = std::cos(half_roll);
+  const float sr = std::sin(half_roll);
+  const float cp = std::cos(half_pitch);
+  const float sp = std::sin(half_pitch);
+  const float cy = std::cos(half_yaw);
+  const float sy = std::sin(half_yaw);
+  state.q[0] = cr * cp * cy + sr * sp * sy;
+  state.q[1] = sr * cp * cy - cr * sp * sy;
+  state.q[2] = cr * sp * cy + sr * cp * sy;
+  state.q[3] = cr * cp * sy - sr * sp * cy;
+  vision_state_topic_.Publish(state);
+}
+
+float Gimbal::NearestEquivalentAngle(float wrapped_target, float reference)
+{
+  return reference + std::remainder(wrapped_target - reference, kTwoPi);
+}
+
 void Gimbal::UpdateAttitude(const VqfOutput<float>& imu)
 {
   const auto& q = imu.orientation_6d;
@@ -616,6 +780,7 @@ void Gimbal::UpdateAttitude(const VqfOutput<float>& imu)
   const float shift = param::gimbal::imu.horizontal_shift *
                       std::numbers::pi_v<float> / 180.0f;
   // Match the reference project's horizontal IMU mounting correction.
+  roll_angle_ = raw_roll * std::cos(shift) - raw_pitch * std::sin(shift);
   const float pitch = raw_roll * std::sin(shift) + raw_pitch * std::cos(shift);
   const float gyro_roll = gyro.x * std::cos(shift) - gyro.y * std::sin(shift);
   const float gyro_pitch = gyro.x * std::sin(shift) + gyro.y * std::cos(shift);
@@ -635,6 +800,7 @@ float Gimbal::PitchGravityTorque() const
 void Gimbal::EnterSafeState()
 {
   targets_initialized_ = false;
+  vision_yaw_over_ = false;
   patrol_running_ = false;
   patrol_yaw_wave_.reset();
   patrol_pitch_wave_.reset();

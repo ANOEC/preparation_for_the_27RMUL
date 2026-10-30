@@ -20,6 +20,7 @@ using namespace LibXR;
 /* User Code Begin 1 */
 #include "app/communication/b2b/task.hpp"
 #include "app/debug/vofa_plus_libxr.hpp"
+#include "app/host/task.hpp"
 #include "task_generated.hpp"
 /* User Code End 1 */
 
@@ -49,6 +50,9 @@ alignas(32) static uint8_t usb_otg_hs_ep0_out_buf[32];
 alignas(32) static uint8_t usb_otg_hs_ep1_in_buf[128];
 alignas(32) static uint8_t usb_otg_hs_ep1_out_buf[128];
 alignas(32) static uint8_t usb_otg_hs_ep2_in_buf[32];
+alignas(32) static uint8_t usb_otg_hs_ep2_out_buf[128];
+alignas(32) static uint8_t usb_otg_hs_ep3_in_buf[128];
+alignas(32) static uint8_t usb_otg_hs_ep4_in_buf[32];
 
 extern "C" void app_main(void)
 {
@@ -85,20 +89,26 @@ extern "C" void app_main(void)
   static STM32CANFD fdcan3(&hfdcan3, 5);
   LibXR::CAN& can3 = fdcan3;
 
-  // USB OTG HS: 1 CDC
+  // USB OTG HS: 2 CDC
   static constexpr auto usb_otg_hs_strings = USB::DescriptorStrings::MakeLanguagePack(
-      USB::DescriptorStrings::Language::EN_US, "XRobot",
-      "STM32 XRUSB USB_OTG_HS CDC Demo", "XRUSB-DEMO-");
+      USB::DescriptorStrings::Language::EN_US, "RM_CDC", "STM32H723 CDC Device",
+      "XRUSB-DUAL-");
   static USB::CDCUart usb_otg_hs_cdc(USB::Endpoint::EPNumber::EP1,
                                      USB::Endpoint::EPNumber::EP1,
-                                     USB::Endpoint::EPNumber::EP2, 128, 128, 3);
+                                     USB::Endpoint::EPNumber::EP2, 128, 1024, 32);
+  static USB::CDCUart usb_otg_hs_cdc2(USB::Endpoint::EPNumber::EP3,
+                                      USB::Endpoint::EPNumber::EP2,
+                                      USB::Endpoint::EPNumber::EP4, 128, 1024, 32);
   static STM32USBDeviceOtgHS usb_otg_hs(
-      &hpcd_USB_OTG_HS, 256, {{usb_otg_hs_ep0_out_buf, 8}, usb_otg_hs_ep1_out_buf},
+      &hpcd_USB_OTG_HS, 256,
+      {{usb_otg_hs_ep0_out_buf, 8}, usb_otg_hs_ep1_out_buf, usb_otg_hs_ep2_out_buf},
       {{{usb_otg_hs_ep0_in_buf, 8}, 8},
        {usb_otg_hs_ep1_in_buf, 128},
-       {{usb_otg_hs_ep2_in_buf, 16}, 16}},
-      USB::DeviceDescriptor::PacketSize0::SIZE_8, 0x1D50, 0x6199, 0x100,
-      {&usb_otg_hs_strings}, {{&usb_otg_hs_cdc}},
+       {{usb_otg_hs_ep2_in_buf, 16}, 16},
+       {usb_otg_hs_ep3_in_buf, 128},
+       {{usb_otg_hs_ep4_in_buf, 16}, 16}},
+      USB::DeviceDescriptor::PacketSize0::SIZE_8, 0xA013, 0x5740, 0x100,
+      {&usb_otg_hs_strings}, {{&usb_otg_hs_cdc, &usb_otg_hs_cdc2}},
       {reinterpret_cast<void*>(UID_BASE), 12});
   usb_otg_hs.Init(false);
   usb_otg_hs.Start(false);
@@ -121,6 +131,7 @@ extern "C" void app_main(void)
   XR_REGISTER(usart1, LibXR::UART);
   XR_REGISTER(usart10, LibXR::UART);
   XR_REGISTER(usb_otg_hs_cdc, LibXR::UART);
+  XR_REGISTER(usb_otg_hs_cdc2, LibXR::UART);
 
   XR_REGISTER(can1, LibXR::CAN);
   XR_REGISTER(can2, LibXR::CAN);
@@ -133,6 +144,7 @@ extern "C" void app_main(void)
   /* User Code Begin 3 */
   UserApp::BoardLink::Initialize(fdcan2);
   UserApp::Debug::InitializeVofaPlus(usart10);
+  UserApp::Host::Initialize(usb_otg_hs_cdc, usb_otg_hs_cdc2);
   all_tasks_start();
   /* User Code End 3 */
   XROBOT_MAIN();

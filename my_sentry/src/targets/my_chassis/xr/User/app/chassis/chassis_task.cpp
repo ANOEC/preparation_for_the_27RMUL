@@ -9,6 +9,7 @@
 #include "VQFModule.hpp"
 #include "app/chassis/chassis.hpp"
 #include "app/chassis/chassis_config.hpp"
+#include "app/chassis/reference_coordinates.hpp"
 #include "app/communication/b2b/chassis_command.hpp"
 #include "task_generated.hpp"
 #include "timebase.hpp"
@@ -80,13 +81,22 @@ class ChassisInputAdapter
       return output;
     }
 
-    output.vx = input.vx_mps;
-    output.vy = input.vy_mps;
+    const bool game_mode =
+        input.state == UserApp::Command::ControlState::GAME;
+    const float translation_deviation =
+        app::chassis::ReferenceTranslationDeviation(
+            input.big_yaw_angle_rad, input.yaw_angle_rad, game_mode);
+    const auto body_translation = app::chassis::ReferenceTranslationToBody(
+        input.vx_mps, input.vy_mps, translation_deviation);
+    output.vx = body_translation.vx;
+    output.vy = body_translation.vy;
     output.wz = input.wz_rad_per_sec;
     output.mode = ConvertMode(input.mode);
     output.world_frame = false;
+    // FOLLOW uses the negative relative angle; measured big-yaw velocity is
+    // added as a same-direction feed-forward term by the chassis controller.
     output.follow_yaw_error =
-        std::remainder(-input.big_yaw_angle_rad, 2.0f * std::numbers::pi_v<float>);
+        app::chassis::ReferenceFollowYawError(input.big_yaw_angle_rad);
     output.follow_yaw_velocity = input.big_yaw_velocity_rad_per_sec;
     return output;
   }
@@ -133,7 +143,8 @@ class ChassisInputAdapter
            std::isfinite(input.vx_mps) && std::isfinite(input.vy_mps) &&
            std::isfinite(input.wz_rad_per_sec) &&
            std::isfinite(input.big_yaw_angle_rad) &&
-           std::isfinite(input.big_yaw_velocity_rad_per_sec);
+           std::isfinite(input.big_yaw_velocity_rad_per_sec) &&
+           std::isfinite(input.yaw_angle_rad);
   }
 
   static app::chassis::ChassisMode ConvertMode(
@@ -142,7 +153,9 @@ class ChassisInputAdapter
     switch (mode)
     {
       case UserApp::Command::ChassisMode::PATROL:
-        return app::chassis::ChassisMode::Follow;
+        // The left-switch DOWN position starts gimbal patrol, but the
+        // reference chassis remains FREE instead of chasing that scan motion.
+        return app::chassis::ChassisMode::Free;
       case UserApp::Command::ChassisMode::FOLLOW:
         return app::chassis::ChassisMode::Follow;
       case UserApp::Command::ChassisMode::SPIN:

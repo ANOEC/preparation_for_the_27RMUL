@@ -55,6 +55,14 @@ template <> struct TaskHooks<shoot_task_tag>
 };
 extern LibXR::Thread shoot_task_thread;
 
+struct host_task_tag {};
+template <> struct TaskHooks<host_task_tag>
+{
+  static void init(void*, void*, void*) {}
+  static void loop(const LoopContext& context);
+};
+extern LibXR::Thread host_task_thread;
+
 }  // namespace generated::task
 
 void all_tasks_start();

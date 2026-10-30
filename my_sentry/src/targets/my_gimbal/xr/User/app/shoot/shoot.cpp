@@ -19,14 +19,10 @@ LegacyPid::Param MakeLegacyPid(float kp, float ki, float kd, float deadband,
 
 Shoot::Shoot()
     : command_subscriber_("/cmd/shoot"),
-      vision_command_topic_(
-          LibXR::Topic::CreateTopic<VisionCommand>("/vision_cmd")),
-      big_buff_command_topic_(
-          LibXR::Topic::CreateTopic<BigBuffCommand>("/buff_cmd")),
-      vision_command_subscriber_(vision_command_topic_),
-      big_buff_command_subscriber_(big_buff_command_topic_),
-      big_buff_state_topic_(
-          LibXR::Topic::CreateTopic<BigBuffState>("/big_buff_state")),
+      vision_command_subscriber_("/vision_cmd"),
+      buff_command_subscriber_("/buff_cmd"),
+      buff_state_topic_(LibXR::Topic::CreateTopic<Host::BigBuffState>(
+          "/big_buff_state")),
       fri_left_subscriber_("/fb/motor/fri_left"),
       fri_right_subscriber_("/fb/motor/fri_right"),
       pluck_subscriber_("/fb/motor/pluck"),
@@ -76,7 +72,7 @@ Shoot::Shoot()
 
   command_subscriber_.StartWaiting();
   vision_command_subscriber_.StartWaiting();
-  big_buff_command_subscriber_.StartWaiting();
+  buff_command_subscriber_.StartWaiting();
   fri_left_subscriber_.StartWaiting();
   fri_right_subscriber_.StartWaiting();
   pluck_subscriber_.StartWaiting();
@@ -99,7 +95,6 @@ void Shoot::Run(float dt_s, uint32_t now_ms)
   UpdateReferences(dt_s, now_ms);
   ComputeControl(dt_s);
   PublishControl();
-  PublishState();
 }
 
 void Shoot::ReceiveInputs(uint32_t now_ms)
@@ -117,12 +112,12 @@ void Shoot::ReceiveInputs(uint32_t now_ms)
     command_ = {};
   }
 
+  ReceiveHost(now_ms);
   ReceiveMotorFeedback(now_ms);
-  ReceiveHostCommands(now_ms);
   ReceiveReferee(now_ms);
 }
 
-void Shoot::ReceiveHostCommands(uint32_t now_ms)
+void Shoot::ReceiveHost(uint32_t now_ms)
 {
   if (vision_command_subscriber_.Available())
   {
@@ -132,24 +127,22 @@ void Shoot::ReceiveHostCommands(uint32_t now_ms)
     vision_command_alive_ = true;
   }
   else if (vision_command_alive_ &&
-           TimedOut(now_ms, vision_command_last_ms_, HOST_COMMAND_TIMEOUT_MS))
+           TimedOut(now_ms, vision_command_last_ms_, HOST_TIMEOUT_MS))
   {
     vision_command_alive_ = false;
-    vision_command_ = {};
   }
 
-  if (big_buff_command_subscriber_.Available())
+  if (buff_command_subscriber_.Available())
   {
-    big_buff_command_ = big_buff_command_subscriber_.GetData();
-    big_buff_command_subscriber_.StartWaiting();
-    big_buff_command_last_ms_ = now_ms;
-    big_buff_command_alive_ = true;
+    buff_command_ = buff_command_subscriber_.GetData();
+    buff_command_subscriber_.StartWaiting();
+    buff_command_last_ms_ = now_ms;
+    buff_command_alive_ = true;
   }
-  else if (big_buff_command_alive_ &&
-           TimedOut(now_ms, big_buff_command_last_ms_, HOST_COMMAND_TIMEOUT_MS))
+  else if (buff_command_alive_ &&
+           TimedOut(now_ms, buff_command_last_ms_, HOST_TIMEOUT_MS))
   {
-    big_buff_command_alive_ = false;
-    big_buff_command_ = {};
+    buff_command_alive_ = false;
   }
 }
 
@@ -245,128 +238,116 @@ void Shoot::UpdateMotorProtection(uint32_t now_ms)
 
 void Shoot::UpdateReferences(float dt_s, uint32_t now_ms)
 {
-  bool safe_state = command_alive_ &&
-                    (command_.state == Remote::ControlState::HAND ||
-                     command_.state == Remote::ControlState::GAME);
-  bool friction_requested = false;
-  float feeder_reference = 0.0f;
-  FeederControlMode requested_mode = FeederControlMode::VELOCITY;
+  const bool safe_state = command_alive_ &&
+                          (command_.state == Remote::ControlState::HAND ||
+                           command_.state == Remote::ControlState::GAME);
+  const bool game_mode = command_.state == Remote::ControlState::GAME;
+  const bool host_fresh = vision_command_alive_ &&
+                          !TimedOut(now_ms, vision_command_last_ms_, HOST_TIMEOUT_MS);
+  const bool buff_fresh = buff_command_alive_ &&
+                          !TimedOut(now_ms, buff_command_last_ms_, HOST_TIMEOUT_MS);
 
-  if (safe_state && command_.state == Remote::ControlState::HAND)
-  {
-    friction_requested = command_.friction_on;
-    feeder_reference = command_.feeder_on
-                           ? param::shoot::basic_param.pluck_basic_speed
-                           : 0.0f;
-    big_buff_shooting_ = false;
-    big_buff_first_entry_ = true;
-  }
-  else if (safe_state && command_.state == Remote::ControlState::GAME)
-  {
-    const bool manual_fire = command_.feeder_on;
-    const bool vision_fire =
-        vision_command_alive_ &&
-        (vision_command_.fire == 1U || vision_command_.fire == 2U);
-
-    // GAME accepts both sources.  A live vision fire request may spin up the
-    // friction wheels by itself; the DT7 latch remains an independent manual
-    // request.  Manual feeding has priority and always uses velocity mode.
-    friction_requested = command_.friction_on || vision_fire;
-
-    if (manual_fire)
-    {
-      feeder_reference = param::shoot::basic_param.pluck_basic_speed;
-      big_buff_shooting_ = false;
-      big_buff_first_entry_ = true;
-    }
-    else if (!vision_command_alive_ || vision_command_.fire == 0U)
-    {
-      big_buff_shooting_ = false;
-      big_buff_first_entry_ = true;
-    }
-    else if (vision_command_.fire == 1U)
-    {
-      feeder_reference = param::shoot::basic_param.pluck_basic_speed;
-      big_buff_shooting_ = false;
-      big_buff_first_entry_ = true;
-      last_big_buff_count_ = big_buff_command_.shoot_count;
-      big_buff_shoot_count_ = last_big_buff_count_;
-    }
-    else if (vision_command_.fire == 2U)
-    {
-      if (big_buff_command_alive_)
-      {
-        if (last_big_buff_count_ != big_buff_command_.shoot_count)
-        {
-          big_buff_shoot_amount_ = static_cast<uint8_t>(
-              static_cast<uint16_t>(big_buff_command_.shoot_count) -
-              static_cast<uint16_t>(last_big_buff_count_));
-          last_big_buff_count_ = big_buff_command_.shoot_count;
-          big_buff_shooting_ = true;
-          big_buff_last_target_ms_ = now_ms;
-        }
-
-        if (big_buff_shooting_)
-        {
-          const float pellet_step =
-              2.0f * std::numbers::pi_v<float> /
-              static_cast<float>(
-                  param::shoot::basic_param.amount_pellet_per_round);
-          if (big_buff_first_entry_)
-          {
-            big_buff_first_entry_ = false;
-            big_buff_target_position_rad_ =
-                pluck_.feedback.position_rad +
-                pellet_step * static_cast<float>(big_buff_shoot_amount_);
-          }
-          if (static_cast<uint32_t>(now_ms - big_buff_last_target_ms_) >=
-              BIG_BUFF_RETRY_MS)
-          {
-            big_buff_target_position_rad_ =
-                pluck_.feedback.position_rad +
-                pellet_step * static_cast<float>(big_buff_shoot_amount_);
-            big_buff_last_target_ms_ = now_ms;
-          }
-          requested_mode = FeederControlMode::POSITION;
-          feeder_reference = big_buff_target_position_rad_;
-        }
-        else
-        {
-          big_buff_shoot_count_ = last_big_buff_count_;
-          big_buff_first_entry_ = true;
-        }
-      }
-      else
-      {
-        // Without a counted-shot command there is no safe position target.
-        // Keep the friction wheels ready but do not feed.
-        big_buff_shooting_ = false;
-        big_buff_first_entry_ = true;
-      }
-    }
-  }
-
-  if (!safe_state || motor_protection_active_)
-  {
-    friction_requested = false;
-    feeder_reference = 0.0f;
-    requested_mode = FeederControlMode::VELOCITY;
-  }
-
-  SetFeederMode(requested_mode);
-  friction_requested = friction_requested && !motor_protection_active_;
+  // A deliberate DT7 friction-wheel latch must remain usable for bench testing
+  // in both HAND and GAME.  Only automatic vision firing requires a fresh host.
+  const bool friction_requested = safe_state && command_.friction_on &&
+                                  !motor_protection_active_;
   const float ramp_target =
       friction_requested ? param::shoot::basic_param.fri_basic_speed : 0.0f;
-
-  // Reference RampInput changed by 3 rad/s every 1-ms iteration. Preserve the
-  // same physical slope while tolerating small task jitter.
   const float ramp_step =
       param::shoot::basic_param.fri_ramp_rate * (dt_s / 0.001f);
   friction_ramp_rad_per_sec_ =
       MoveTowards(friction_ramp_rad_per_sec_, ramp_target, ramp_step);
-
   fri_left_reference_ = -friction_ramp_rad_per_sec_;
   fri_right_reference_ = friction_ramp_rad_per_sec_;
+
+  float feeder_reference = 0.0f;
+  FeederControlMode requested_mode = FeederControlMode::VELOCITY;
+
+  if (safe_state && !game_mode)
+  {
+    feeder_reference = command_.feeder_on
+                           ? param::shoot::basic_param.pluck_basic_speed
+                           : 0.0f;
+    buff_shoot_active_ = false;
+    buff_first_entry_ = true;
+  }
+  else if (safe_state && game_mode)
+  {
+    if (command_.feeder_on)
+    {
+      // Manual DT7 feeding has priority and remains available without vision.
+      feeder_reference = param::shoot::basic_param.pluck_basic_speed;
+      buff_shoot_active_ = false;
+      buff_first_entry_ = true;
+    }
+    else if (host_fresh && command_.friction_on && vision_command_.fire == 1U)
+    {
+      // Normal auto-aim continuous fire.
+      feeder_reference = param::shoot::basic_param.pluck_basic_speed;
+      last_buff_command_count_ = buff_command_.shoot_count;
+      buff_completed_count_ = last_buff_command_count_;
+      buff_shoot_active_ = false;
+      buff_first_entry_ = true;
+    }
+    else if (host_fresh && command_.friction_on &&
+             vision_command_.fire == 2U && buff_fresh)
+    {
+      // Buff command is an 8-bit ring counter. Each positive delta requests
+      // that many feeder pockets, exactly as steering_sentry does.
+      if (last_buff_command_count_ != buff_command_.shoot_count)
+      {
+        buff_shoot_amount_ = static_cast<std::uint8_t>(
+            (static_cast<std::uint16_t>(buff_command_.shoot_count) -
+             last_buff_command_count_) & 0xFFU);
+        last_buff_command_count_ = buff_command_.shoot_count;
+        buff_shoot_active_ = true;
+        buff_first_entry_ = true;
+        buff_last_target_ms_ = now_ms;
+      }
+
+      if (buff_shoot_active_)
+      {
+        requested_mode = FeederControlMode::POSITION;
+        const float pellet_step =
+            2.0f * std::numbers::pi_v<float> /
+            static_cast<float>(param::shoot::basic_param.amount_pellet_per_round);
+        if (buff_first_entry_)
+        {
+          buff_first_entry_ = false;
+          buff_target_position_rad_ =
+              pluck_.feedback.position_rad + pellet_step * buff_shoot_amount_;
+        }
+        // If position control stalled for 250 ms, re-anchor the requested
+        // displacement just like the old implementation.
+        if (static_cast<std::uint32_t>(now_ms - buff_last_target_ms_) >= 250U)
+        {
+          buff_target_position_rad_ =
+              pluck_.feedback.position_rad + pellet_step * buff_shoot_amount_;
+          buff_last_target_ms_ = now_ms;
+        }
+        feeder_reference = buff_target_position_rad_;
+      }
+      else
+      {
+        feeder_reference = 0.0f;
+        requested_mode = FeederControlMode::VELOCITY;
+        buff_first_entry_ = true;
+      }
+    }
+    else
+    {
+      feeder_reference = 0.0f;
+      buff_shoot_active_ = false;
+      buff_first_entry_ = true;
+    }
+  }
+  else
+  {
+    buff_shoot_active_ = false;
+    buff_first_entry_ = true;
+  }
+
+  feeder_controller_.SetMode(requested_mode);
 
   UpdateShotEstimator();
   UpdateHeatProtection(dt_s);
@@ -382,50 +363,45 @@ void Shoot::UpdateReferences(float dt_s, uint32_t now_ms)
       std::abs(fri_left_reference_) >= 100.0f &&
       std::abs(fri_right_reference_) >= 100.0f;
 
-  // Same interlock as steering_sentry: feeder may not run until both friction
-  // wheels have caught the ramp reference.
   if (!(left_follows && right_follows && friction_running))
   {
-    if (!feeder_interlock_active_)
-    {
-      feeder_interlock_active_ = true;
-      feeder_interlock_position_rad_ = pluck_.feedback.position_rad;
-    }
-    feeder_reference = feeder_mode_ == FeederControlMode::POSITION
-                           ? feeder_interlock_position_rad_
-                           : 0.0f;
-  }
-  else
-  {
-    feeder_interlock_active_ = false;
+    if (feeder_controller_.Mode() == FeederControlMode::VELOCITY)
+      feeder_reference = 0.0f;
+    else
+      feeder_reference = pluck_.feedback.position_rad;
   }
 
-  // Heat limiting only applies once actual referee game data says the game is
-  // active. Without referee data, manual bench testing remains possible.
   if (heat_stop_ && game_status_alive_ && game_status_.game_progress != 0U)
   {
-    feeder_reference = feeder_mode_ == FeederControlMode::POSITION
-                           ? pluck_.feedback.position_rad
-                           : 0.0f;
+    if (feeder_controller_.Mode() == FeederControlMode::VELOCITY)
+      feeder_reference = 0.0f;
+    else
+      feeder_reference = pluck_.feedback.position_rad;
   }
 
   if (!safe_state || motor_protection_active_)
   {
+    feeder_controller_.SetMode(FeederControlMode::VELOCITY);
     feeder_reference = 0.0f;
   }
 
   feeder_reference_ = feeder_reference;
+  Host::BigBuffState state{};
+  state.already_shoot_count = buff_completed_count_;
+  buff_state_topic_.Publish(state);
 }
 
 void Shoot::UpdateJamProtection(uint32_t now_ms, float& feeder_reference)
 {
+  const bool position_mode =
+      feeder_controller_.Mode() == FeederControlMode::POSITION;
+
   if (jam_reversing_)
   {
-    if (feeder_mode_ == FeederControlMode::POSITION)
+    if (position_mode)
     {
       feeder_reference = jam_reverse_position_rad_;
-      if (std::abs(pluck_.feedback.position_rad - jam_reverse_position_rad_) <
-          0.05f)
+      if (std::abs(pluck_.feedback.position_rad - jam_reverse_position_rad_) < 0.05f)
       {
         jam_reversing_ = false;
         jam_detecting_ = false;
@@ -445,18 +421,14 @@ void Shoot::UpdateJamProtection(uint32_t now_ms, float& feeder_reference)
     return;
   }
 
-  // Preserve the original sign-sensitive overload check. On this vehicle the
-  // normal feeding direction produces positive measured feeder torque.
   const bool overloaded =
       pluck_.feedback.torque_nm > param::shoot::basic_param.pluck_overload_effort;
-  constexpr float POSITION_STUCK_SPEED_RAD_PER_SEC = 0.001f;
   const bool position_stuck =
-      feeder_mode_ == FeederControlMode::POSITION && big_buff_shooting_ &&
-      std::abs(pluck_.feedback.velocity_rad_per_sec) <
-          POSITION_STUCK_SPEED_RAD_PER_SEC;
+      position_mode && buff_shoot_active_ &&
+      std::abs(pluck_.feedback.velocity_rad_per_sec) < 0.001f;
 
-  if ((!overloaded && !position_stuck) ||
-      (feeder_mode_ == FeederControlMode::VELOCITY && feeder_reference <= 0.0f))
+  if (!(overloaded || position_stuck) ||
+      (!position_mode && feeder_reference <= 0.0f))
   {
     jam_detecting_ = false;
     return;
@@ -475,13 +447,11 @@ void Shoot::UpdateJamProtection(uint32_t now_ms, float& feeder_reference)
   {
     jam_reversing_ = true;
     jam_reverse_start_ms_ = now_ms;
-    if (feeder_mode_ == FeederControlMode::POSITION)
+    if (position_mode)
     {
-      const float reverse_angle_rad =
-          param::shoot::basic_param.pluck_reverse_angle /
-          180.0f * std::numbers::pi_v<float>;
-      jam_reverse_position_rad_ =
-          pluck_.feedback.position_rad - reverse_angle_rad;
+      const float reverse_rad = param::shoot::basic_param.pluck_reverse_angle /
+                                180.0f * std::numbers::pi_v<float>;
+      jam_reverse_position_rad_ = pluck_.feedback.position_rad - reverse_rad;
       feeder_reference = jam_reverse_position_rad_;
     }
     else
@@ -538,12 +508,14 @@ void Shoot::UpdateShotEstimator()
            average_friction_speed >= param::shoot::basic_param.fri_count_rise_vel)
   {
     friction_speed_drop_ = false;
-    if (big_buff_shooting_)
+    if (buff_shoot_active_)
     {
-      ++big_buff_shoot_count_;
-      if (big_buff_shoot_count_ >= last_big_buff_count_)
+      ++buff_completed_count_;
+      if (static_cast<std::uint8_t>(buff_completed_count_) ==
+          last_buff_command_count_)
       {
-        big_buff_shooting_ = false;
+        buff_shoot_active_ = false;
+        buff_first_entry_ = true;
       }
     }
   }
@@ -644,27 +616,6 @@ void Shoot::PublishControl()
   fri_left_torque_topic_.Publish(fri_left_output_nm_);
   fri_right_torque_topic_.Publish(fri_right_output_nm_);
   pluck_torque_topic_.Publish(feeder_output_nm_);
-}
-
-void Shoot::PublishState()
-{
-  big_buff_state_.already_shoot_count = big_buff_shoot_count_;
-  big_buff_state_topic_.Publish(big_buff_state_);
-}
-
-void Shoot::SetFeederMode(FeederControlMode mode)
-{
-  if (mode == feeder_mode_)
-  {
-    return;
-  }
-
-  feeder_mode_ = mode;
-  feeder_controller_.SetMode(mode);
-  feeder_controller_.SetVelocityKi(
-      mode == FeederControlMode::POSITION
-          ? param::shoot::dual_pid::pluck.V_ki_buff
-          : param::shoot::dual_pid::pluck.V_ki);
 }
 
 void Shoot::ResetControllers()

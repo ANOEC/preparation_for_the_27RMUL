@@ -1,5 +1,6 @@
 #include "../chassis.hpp"
 #include "../chassis_config.hpp"
+#include "../reference_coordinates.hpp"
 
 #include <cassert>
 #include <cmath>
@@ -46,6 +47,8 @@ int main()
                  param::chassis::pid::motor4.max_output));
     assert(close(generated_config.follow_kp,
                  param::chassis::pid::follow.kp));
+    assert(close(generated_config.follow_velocity_feedforward,
+                 param::chassis::pid::follow.velocity_feedforward));
     assert(close(generated_config.maximum_tilt_for_spin,
                  param::chassis::param.stop_spin_angle));
 
@@ -127,4 +130,50 @@ int main()
     assert(controlled_output.target_body_velocity.vx > 0.0f);
     assert(controlled_output.target_body_velocity.vx < drive.vx);
     assert(controlled_output.body_force_command.vx > 0.0f);
+
+    // Follow has no angular dead zone: even a one-degree relative error must
+    // create a chassis yaw request.
+    controlled.reset();
+    Chassis::Command small_follow {};
+    small_follow.mode = ChassisMode::Follow;
+    small_follow.world_frame = false;
+    small_follow.follow_yaw_error =
+        1.0f * 3.14159265358979323846f / 180.0f;
+    controlled.set_feedback(feedback);
+    controlled.set_command(small_follow);
+    const auto& small_follow_output = controlled.update(0.001f);
+    assert(small_follow_output.target_body_velocity.wz < 0.0f);
+
+    // Positive relative big-yaw velocity requests immediate chassis rotation
+    // in the same direction before a sizeable angle error accumulates.
+    controlled.reset();
+    Chassis::Command moving_follow {};
+    moving_follow.mode = ChassisMode::Follow;
+    moving_follow.world_frame = false;
+    moving_follow.follow_yaw_velocity = 1.0f;
+    controlled.set_feedback(feedback);
+    controlled.set_command(moving_follow);
+    const auto& moving_follow_output = controlled.update(0.001f);
+    assert(moving_follow_output.target_body_velocity.wz > 0.0f);
+
+    const float half_pi = 0.5f * 3.14159265358979323846f;
+    assert(close(ReferenceFollowYawError(half_pi), -half_pi));
+
+    // GAME uses only the big-yaw offset. A +90-degree big-yaw angle rotates
+    // a forward command into +body-Y with the reference matrix.
+    const float game_deviation =
+        ReferenceTranslationDeviation(half_pi, 0.0f, true);
+    const auto game_translation =
+        ReferenceTranslationToBody(1.0f, 0.0f, game_deviation);
+    assert(close(game_translation.vx, 0.0f));
+    assert(close(game_translation.vy, 1.0f));
+
+    // HAND additionally applies the small-yaw command angle. Equal +90-degree
+    // angles cancel, so forward remains body-forward.
+    const float hand_deviation =
+        ReferenceTranslationDeviation(half_pi, half_pi, false);
+    const auto hand_translation =
+        ReferenceTranslationToBody(1.0f, 0.0f, hand_deviation);
+    assert(close(hand_translation.vx, 1.0f));
+    assert(close(hand_translation.vy, 0.0f));
 }

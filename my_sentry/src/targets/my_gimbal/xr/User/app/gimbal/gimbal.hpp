@@ -5,7 +5,9 @@
 #include "DJIMotor.hpp"
 #include "DMMotor.hpp"
 #include "VQFModule.hpp"
+#include "RefereeProtocol/RefereeProtocolGenerated.hpp"
 #include "app/gimbal/control.hpp"
+#include "app/host/protocol.hpp"
 #include "app/remote/remote.hpp"
 #include "topic.hpp"
 #include "wave/sine.hpp"
@@ -31,7 +33,10 @@ class Gimbal
 
   void ReceiveFeedback(uint32_t now_ms);
   void ReceiveCommand(uint32_t now_ms);
+  void ReceiveHostAndReferee(uint32_t now_ms);
+  void PublishVisionState();
   void UpdateAttitude(const VqfOutput<float>& imu);
+  static float NearestEquivalentAngle(float wrapped_target, float reference);
   float PitchGravityTorque() const;
   void EnterSafeState();
   void ReceiveTorqueTestCommand(uint32_t now_ms, bool accept_command);
@@ -63,6 +68,7 @@ class Gimbal
   bool yaw_initialized_ = false;
   float previous_wrapped_yaw_ = 0.0f;
   float continuous_yaw_ = 0.0f;
+  float roll_angle_ = 0.0f;
 
   AxisState yaw_{};
   AxisState big_yaw_{};
@@ -72,6 +78,19 @@ class Gimbal
   float big_yaw_target_offset_ = 0.0f;
   float pitch_encoder_angle_ = 0.0f;
   Remote::GimbalCommand command_{};
+  Host::GimbalCommand vision_command_{};
+  std::uint64_t nav_mode_ = 0;
+  RefereeProtocol::RobotStatus robot_status_{};
+  RefereeProtocol::RobotShoot robot_shoot_{};
+  RefereeProtocol::ProjectileAllowance projectile_allowance_{};
+  uint32_t vision_command_ms_ = 0;
+  uint32_t nav_mode_ms_ = 0;
+  bool vision_command_received_ = false;
+  bool nav_mode_received_ = false;
+  bool vision_yaw_over_ = false;
+  float vision_yaw_hold_target_ = 0.0f;
+  static constexpr uint32_t HOST_TIMEOUT_MS = 2000U;
+  static constexpr uint32_t VISION_EXTRAPOLATION_LIMIT_MS = 50U;
 
   CascadeController yaw_controller_{};
   CascadeController big_yaw_controller_{};
@@ -98,6 +117,13 @@ class Gimbal
   LibXR::Topic::ASyncSubscriber<DMMotor::SolvedFeedback> pitch_subscriber_;
   LibXR::Topic::ASyncSubscriber<VqfOutput<float>> imu_subscriber_;
   LibXR::Topic::ASyncSubscriber<Remote::GimbalCommand> command_subscriber_;
+  LibXR::Topic::ASyncSubscriber<Host::GimbalCommand> vision_command_subscriber_;
+  LibXR::Topic::ASyncSubscriber<std::uint64_t> nav_mode_subscriber_;
+  LibXR::Topic::Domain referee_domain_{"referee"};
+  LibXR::Topic::ASyncSubscriber<RefereeProtocol::RobotStatus> robot_status_subscriber_;
+  LibXR::Topic::ASyncSubscriber<RefereeProtocol::RobotShoot> robot_shoot_subscriber_;
+  LibXR::Topic::ASyncSubscriber<RefereeProtocol::ProjectileAllowance> projectile_allowance_subscriber_;
+  LibXR::Topic vision_state_topic_;
   LibXR::Topic yaw_torque_topic_;
   LibXR::Topic big_yaw_torque_topic_;
   LibXR::Topic pitch_torque_topic_;

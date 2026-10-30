@@ -5,6 +5,7 @@
 
 #include "DJIMotor.hpp"
 #include "RefereeProtocol/RefereeProtocolGenerated.hpp"
+#include "app/host/protocol.hpp"
 #include "app/remote/remote.hpp"
 #include "app/shoot/control.hpp"
 #include "leso/leso.hpp"
@@ -12,29 +13,6 @@
 
 namespace UserApp::Shoot
 {
-
-/** Host command layout used by steering_sentry's /vision_cmd topic. */
-struct VisionCommand
-{
-  uint8_t mode = 0U;
-  uint8_t fire = 0U;  // 0: stop, 1: continuous, 2: counted big-buff shot
-  float yaw = 0.0f;
-  float yaw_velocity = 0.0f;
-  float yaw_acceleration = 0.0f;
-  float pitch = 0.0f;
-  float pitch_velocity = 0.0f;
-  float pitch_acceleration = 0.0f;
-};
-
-struct BigBuffCommand
-{
-  uint8_t shoot_count = 0U;
-};
-
-struct BigBuffState
-{
-  uint32_t already_shoot_count = 0U;
-};
 
 class Shoot
 {
@@ -47,10 +25,9 @@ class Shoot
  private:
   static constexpr uint32_t MOTOR_TIMEOUT_MS = 100U;
   static constexpr uint32_t COMMAND_TIMEOUT_MS = 100U;
-  static constexpr uint32_t HOST_COMMAND_TIMEOUT_MS = 2000U;
   static constexpr uint32_t REFEREE_TIMEOUT_MS = 2000U;
   static constexpr uint32_t MOTOR_RECOVERY_DELAY_MS = 500U;
-  static constexpr uint32_t BIG_BUFF_RETRY_MS = 250U;
+  static constexpr uint32_t HOST_TIMEOUT_MS = 2000U;
 
   struct MotorState
   {
@@ -61,7 +38,7 @@ class Shoot
 
   void ReceiveInputs(uint32_t now_ms);
   void ReceiveMotorFeedback(uint32_t now_ms);
-  void ReceiveHostCommands(uint32_t now_ms);
+  void ReceiveHost(uint32_t now_ms);
   void ReceiveReferee(uint32_t now_ms);
   void UpdateMotorProtection(uint32_t now_ms);
   void UpdateReferences(float dt_s, uint32_t now_ms);
@@ -70,9 +47,7 @@ class Shoot
   void UpdateShotEstimator();
   void ComputeControl(float dt_s);
   void PublishControl();
-  void PublishState();
   void ResetControllers();
-  void SetFeederMode(FeederControlMode mode);
 
   static bool TimedOut(uint32_t now_ms, uint32_t last_ms, uint32_t timeout_ms)
   {
@@ -83,25 +58,18 @@ class Shoot
 
   // Application command from DT7 adapter.
   LibXR::Topic::ASyncSubscriber<Remote::ShootCommand> command_subscriber_;
+  LibXR::Topic::ASyncSubscriber<Host::GimbalCommand> vision_command_subscriber_;
+  LibXR::Topic::ASyncSubscriber<Host::BigBuffCommand> buff_command_subscriber_;
+  LibXR::Topic buff_state_topic_;
   Remote::ShootCommand command_{};
+  Host::GimbalCommand vision_command_{};
+  Host::BigBuffCommand buff_command_{};
+  uint32_t vision_command_last_ms_ = 0U;
+  uint32_t buff_command_last_ms_ = 0U;
+  bool vision_command_alive_ = false;
+  bool buff_command_alive_ = false;
   uint32_t command_last_ms_ = 0U;
   bool command_alive_ = false;
-
-  // Vision/big-buff commands retain the reference project's topic contract.
-  // Own the topic handles so the shooter can start before a host publisher
-  // exists; name-only subscribers intentionally wait forever for creation.
-  LibXR::Topic vision_command_topic_;
-  LibXR::Topic big_buff_command_topic_;
-  LibXR::Topic::ASyncSubscriber<VisionCommand> vision_command_subscriber_;
-  LibXR::Topic::ASyncSubscriber<BigBuffCommand> big_buff_command_subscriber_;
-  LibXR::Topic big_buff_state_topic_;
-  VisionCommand vision_command_{};
-  BigBuffCommand big_buff_command_{};
-  BigBuffState big_buff_state_{};
-  uint32_t vision_command_last_ms_ = 0U;
-  uint32_t big_buff_command_last_ms_ = 0U;
-  bool vision_command_alive_ = false;
-  bool big_buff_command_alive_ = false;
 
   // Motor feedback.
   LibXR::Topic::ASyncSubscriber<DJIMotor::SolvedFeedback> fri_left_subscriber_;
@@ -158,16 +126,13 @@ class Shoot
   uint32_t jam_reverse_start_ms_ = 0U;
   float jam_reverse_position_rad_ = 0.0f;
 
-  FeederControlMode feeder_mode_ = FeederControlMode::VELOCITY;
-  bool big_buff_shooting_ = false;
-  bool big_buff_first_entry_ = true;
-  uint8_t big_buff_shoot_count_ = 0U;
-  uint8_t last_big_buff_count_ = 0U;
-  uint8_t big_buff_shoot_amount_ = 0U;
-  float big_buff_target_position_rad_ = 0.0f;
-  uint32_t big_buff_last_target_ms_ = 0U;
-  bool feeder_interlock_active_ = false;
-  float feeder_interlock_position_rad_ = 0.0f;
+  bool buff_shoot_active_ = false;
+  bool buff_first_entry_ = true;
+  uint8_t last_buff_command_count_ = 0U;
+  uint8_t buff_shoot_amount_ = 0U;
+  uint32_t buff_completed_count_ = 0U;
+  float buff_target_position_rad_ = 0.0f;
+  uint32_t buff_last_target_ms_ = 0U;
 
   bool friction_ready_ = false;
   bool friction_speed_drop_ = false;

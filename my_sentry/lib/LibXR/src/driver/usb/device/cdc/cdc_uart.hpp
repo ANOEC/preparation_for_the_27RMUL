@@ -180,6 +180,22 @@ class CDCUart : public CDCBase, public LibXR::UART
 
  protected:
   /**
+   * @brief Bind CDC endpoints and resume writes queued before USB enumeration.
+   *
+   * Producers may fill the TX queue before the host selects the USB
+   * configuration.  Those early writes cannot start an endpoint transfer, and
+   * once the byte queue is full no later write is available to kick the
+   * backend.  Progress the queue here, after CDCBase has made the data IN
+   * endpoint usable.
+   */
+  void BindEndpoints(EndpointPool& endpoint_pool, uint8_t start_itf_num,
+                     bool in_isr) override
+  {
+    CDCBase::BindEndpoints(endpoint_pool, start_itf_num, in_isr);
+    ProgressTx(in_isr);
+  }
+
+  /**
    * @brief 解绑端点并清理接收暂存状态 / Unbind endpoints and clear saved receive state
    * @param endpoint_pool 端点池 / Endpoint pool
    * @param in_isr 是否在中断中调用 / Whether called in an ISR

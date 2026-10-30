@@ -37,3 +37,13 @@ daemon_timeout_ms = 100
 parameters = ["nullptr", "nullptr", "nullptr"]
 delay_start = "IMMEDIATE"
 period_us = 1000
+
+[[tasks]]
+name = "host_task"
+priority = "HIGH"
+stack_size = 4096
+entry_function = "host_thread_entry"
+daemon_timeout_ms = 100
+parameters = ["nullptr", "nullptr", "nullptr"]
+delay_start = "IMMEDIATE"
+period_us = 1000

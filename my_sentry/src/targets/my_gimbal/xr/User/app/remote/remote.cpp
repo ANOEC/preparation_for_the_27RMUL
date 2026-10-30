@@ -12,6 +12,13 @@ Remote::Remote(const char* remote_topic_name, const char* gimbal_topic_name,
     : offline_timeout_ms_(offline_timeout_ms),
       remote_subscriber_(
           LibXR::Topic::CreateTopic<RemoteData>(remote_topic_name)),
+      host_chassis_subscriber_(
+          LibXR::Topic::CreateTopic<Host::ChassisCommand>("/vision_chassis_cmd")),
+      nav_mode_subscriber_(
+          LibXR::Topic::CreateTopic<std::uint64_t>("/vision_nav_mode")),
+      game_status_subscriber_(
+          LibXR::Topic::CreateTopic<RefereeProtocol::GameStatus>(
+              "regular/cmd/0001/rx", &referee_domain_)),
       gimbal_topic_(LibXR::Topic::CreateTopic<GimbalCommand>(gimbal_topic_name)),
       chassis_topic_(LibXR::Topic::CreateTopic<Command::ChassisCommand>(
           chassis_topic_name)),
@@ -23,10 +30,14 @@ Remote::Remote(const char* remote_topic_name, const char* gimbal_topic_name,
   REQUIRE(shoot_topic_name != nullptr);
   REQUIRE(offline_timeout_ms_ > 0U);
   remote_subscriber_.StartWaiting();
+  host_chassis_subscriber_.StartWaiting();
+  nav_mode_subscriber_.StartWaiting();
+  game_status_subscriber_.StartWaiting();
 }
 
 void Remote::Run(uint32_t now_ms)
 {
+  ReceiveHostAndReferee(now_ms);
   if (remote_subscriber_.Available())
   {
     const RemoteData remote_data = remote_subscriber_.GetData();
@@ -52,9 +63,74 @@ void Remote::Run(uint32_t now_ms)
     has_valid_data_ = false;
   }
 
+  ApplyGameOverrides(now_ms);
+
   gimbal_topic_.Publish(command_);
   chassis_topic_.Publish(chassis_command_);
   shoot_topic_.Publish(shoot_command_);
+}
+
+
+void Remote::ReceiveHostAndReferee(uint32_t now_ms)
+{
+  if (host_chassis_subscriber_.Available())
+  {
+    host_chassis_command_ = host_chassis_subscriber_.GetData();
+    host_chassis_subscriber_.StartWaiting();
+    host_command_ms_ = now_ms;
+    host_command_received_ = true;
+  }
+
+  if (nav_mode_subscriber_.Available())
+  {
+    nav_mode_ = nav_mode_subscriber_.GetData();
+    nav_mode_subscriber_.StartWaiting();
+    nav_mode_ms_ = now_ms;
+    nav_mode_received_ = true;
+  }
+
+  if (game_status_subscriber_.Available())
+  {
+    game_status_ = game_status_subscriber_.GetData();
+    game_status_subscriber_.StartWaiting();
+    game_status_ms_ = now_ms;
+    game_status_received_ = true;
+  }
+}
+
+void Remote::ApplyGameOverrides(uint32_t now_ms)
+{
+  if (command_.state != ControlState::GAME || !command_.enabled)
+  {
+    return;
+  }
+
+  // steering_sentry gives navigation control of chassis velocity in GAME.
+  // Its Host maps nav linear_y -> target_vel[0] and linear_x -> target_vel[1].
+  if (host_command_received_ &&
+      static_cast<uint32_t>(now_ms - host_command_ms_) <= HOST_TIMEOUT_MS)
+  {
+    chassis_command_.vx_mps = host_chassis_command_.linear_y;
+    chassis_command_.vy_mps = host_chassis_command_.linear_x;
+    chassis_command_.wz_rad_per_sec = host_chassis_command_.angular_z;
+  }
+  else
+  {
+    chassis_command_.vx_mps = 0.0F;
+    chassis_command_.vy_mps = 0.0F;
+    chassis_command_.wz_rad_per_sec = 0.0F;
+  }
+
+  // During the active match stage the reference sentry forces friction wheels
+  // on and chassis SPIN.  Do not assert the manual feeder request here: firing
+  // permission still comes from vision unless the operator pushes the wheel.
+  if (game_status_received_ &&
+      static_cast<uint32_t>(now_ms - game_status_ms_) <= REFEREE_TIMEOUT_MS &&
+      game_status_.game_progress == 4U)
+  {
+    chassis_command_.mode = Command::ChassisMode::SPIN;
+    shoot_command_.friction_on = true;
+  }
 }
 
 bool Remote::IsRemoteDataValid(const RemoteData& data)

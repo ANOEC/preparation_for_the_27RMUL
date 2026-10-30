@@ -7,8 +7,8 @@
 #include "CanManager.hpp"
 #include "DJIMotor.hpp"
 #include "DMMotor.hpp"
-#include "RemoteControl.hpp"
 #include "RefereeSystem.hpp"
+#include "RemoteControl.hpp"
 #include "VQFModule.hpp"
 #include "libxr.hpp"
 #include "thread.hpp"
@@ -17,8 +17,8 @@
                                            LibXR::GPIO& BMI088_GYRO_CS,
                                            LibXR::GPIO& BMI088_GYRO_INT,
                                            LibXR::PWM& pwm_tim3_ch4, LibXR::SPI& spi2,
-                                           LibXR::UART& uart5, LibXR::UART& usart1, LibXR::FDCAN& fdcan1,
-                                           LibXR::FDCAN& fdcan3)
+                                           LibXR::UART& uart5, LibXR::UART& usart1,
+                                           LibXR::FDCAN& fdcan1, LibXR::FDCAN& fdcan3)
 {
   // pitch: scu-hotpot/DMMotor (User/xrobot.yaml:2)
 #line 2 "User/xrobot.yaml"
@@ -27,7 +27,7 @@
                        DMMotor::ControlMode::ONE_TO_FOUR, 10.0f, 212.415189851f, 12.5f,
 #line 12 "User/xrobot.yaml"
                        30.0f, 12.5f, "/fb/motor/pitch", "/torque/pitch", 100, 0.9184602f);
-#line 30 "User/xrobot_main.hpp"
+#line 31 "User/xrobot_main.hpp"
 
   // big_yaw: scu-hotpot/DMMotor (User/xrobot.yaml:18)
 #line 18 "User/xrobot.yaml"
@@ -36,17 +36,38 @@
                          DMMotor::ControlMode::ONE_TO_FOUR, 10.0f, 29.2724f, 12.5f, 30.0f,
 #line 29 "User/xrobot.yaml"
                          12.5f, "/fb/motor/big_yaw", "/torque/big_yaw", 100, 0.9452919f);
-#line 39 "User/xrobot_main.hpp"
+#line 40 "User/xrobot_main.hpp"
 
   // yaw: scu-hotpot/DJIMotor (User/xrobot.yaml:34)
 #line 34 "User/xrobot.yaml"
   static DJIMotor yaw(1, DJIMotor::MotorType::GM6020, 1.0f, 57.4849f, "/fb/motor/yaw",
 #line 42 "User/xrobot.yaml"
                       "/torque/yaw", 100);
-#line 46 "User/xrobot_main.hpp"
+#line 47 "User/xrobot_main.hpp"
 
-  // vqf: scu-hotpot/VQFModule<float> (User/xrobot.yaml:44)
-#line 53 "User/xrobot.yaml"
+  // fri_left: scu-hotpot/DJIMotor (User/xrobot.yaml:44)
+#line 44 "User/xrobot.yaml"
+  static DJIMotor fri_left(1, DJIMotor::MotorType::M3508, 1.0f, 0.0f,
+#line 51 "User/xrobot.yaml"
+                           "/fb/motor/fri_left", "/torque/fri_left", 100);
+#line 54 "User/xrobot_main.hpp"
+
+  // fri_right: scu-hotpot/DJIMotor (User/xrobot.yaml:54)
+#line 54 "User/xrobot.yaml"
+  static DJIMotor fri_right(2, DJIMotor::MotorType::M3508, 1.0f, 0.0f,
+#line 61 "User/xrobot.yaml"
+                            "/fb/motor/fri_right", "/torque/fri_right", 100);
+#line 61 "User/xrobot_main.hpp"
+
+  // pluck: scu-hotpot/DJIMotor (User/xrobot.yaml:64)
+#line 64 "User/xrobot.yaml"
+  static DJIMotor pluck(3, DJIMotor::MotorType::M2006, 36.0f, 0.0f, "/fb/motor/pluck",
+#line 72 "User/xrobot.yaml"
+                        "/torque/pluck", 100);
+#line 68 "User/xrobot_main.hpp"
+
+  // vqf: scu-hotpot/VQFModule<float> (User/xrobot.yaml:74)
+#line 83 "User/xrobot.yaml"
   static const VQF::Params<float> xr_vqf_vqf_params = {
       .tauAcc = float(3.0),
       .tauMag = float(9.0),
@@ -73,18 +94,35 @@
       .magMinUndisturbedTime = float(0.5),
       .magMaxRejectionTime = float(60.0),
       .magRejectionFactor = float(2.0),
-#line 53 "User/xrobot.yaml"
+#line 83 "User/xrobot.yaml"
   };
-#line 44 "User/xrobot.yaml"
+#line 74 "User/xrobot.yaml"
   static VQFModule<float> vqf("bmi088_accl", "bmi088_gyro", "vqf_output", float(0.0005),
-#line 53 "User/xrobot.yaml"
+#line 83 "User/xrobot.yaml"
                               xr_vqf_vqf_params, 16, 4096, LibXR::Thread::Priority::HIGH,
-#line 82 "User/xrobot.yaml"
+#line 112 "User/xrobot.yaml"
                               true);
-#line 84 "User/xrobot_main.hpp"
+#line 106 "User/xrobot_main.hpp"
 
-  // bmi088_0: scu-hotpot/BMI088 (User/xrobot.yaml:91)
-#line 103 "User/xrobot.yaml"
+  // canmanager: scu-hotpot/CanManager (User/xrobot.yaml:113)
+#line 116 "User/xrobot.yaml"
+  static const std::initializer_list<CanManager::CANBus> xr_canmanager_can_buses = {
+#line 116 "User/xrobot.yaml"
+      CanManager::CANBus::Classic(fdcan1, {&yaw, &fri_left, &fri_right, &pluck},
+#line 116 "User/xrobot.yaml"
+                                  "fdcan1"),
+#line 116 "User/xrobot.yaml"
+      CanManager::CANBus::Classic(fdcan3, {&pitch, &big_yaw}, "fdcan3"),
+#line 116 "User/xrobot.yaml"
+  };
+#line 113 "User/xrobot.yaml"
+  static CanManager canmanager(xr_canmanager_can_buses, 1, 1024,
+#line 119 "User/xrobot.yaml"
+                               LibXR::Thread::Priority::HIGH, true);
+#line 123 "User/xrobot_main.hpp"
+
+  // bmi088_0: scu-hotpot/BMI088 (User/xrobot.yaml:121)
+#line 133 "User/xrobot.yaml"
   static const LibXR::Quaternion<float> xr_bmi088_0_rotation = {1.0f, 0.0f, 0.0f, 0.0f};
   static const LibXR::PID<float>::Param xr_bmi088_0_pid_param = {
       .k = 1.0f,
@@ -94,79 +132,46 @@
       .i_limit = 0.0f,
       .out_limit = 0.0f,
       .cycle = false,
-#line 104 "User/xrobot.yaml"
+#line 134 "User/xrobot.yaml"
   };
-#line 91 "User/xrobot.yaml"
-  static BMI088 bmi088_0(
-#line 94 "User/xrobot.yaml"
-      spi2, BMI088_ACC_CS, BMI088_GYRO_CS, BMI088_GYRO_INT, pwm_tim3_ch4,
-#line 99 "User/xrobot.yaml"
-      BMI088::GyroFreq::GYRO_2000HZ_BW230HZ, BMI088::AcclFreq::ACCL_1600HZ,
-#line 101 "User/xrobot.yaml"
-      BMI088::GyroRange::DEG_2000DPS, BMI088::AcclRange::ACCL_6G, xr_bmi088_0_rotation,
-#line 104 "User/xrobot.yaml"
-      xr_bmi088_0_pid_param, "bmi088_gyro", "bmi088_accl", 50.0f, 2048);
-#line 124 "User/xrobot_main.hpp"
-
-  // remote: scu-hotpot/RemoteControl<Module::Remote::DT7::Remote> (User/xrobot.yaml:116)
-#line 116 "User/xrobot.yaml"
-  static RemoteControl<Module::Remote::DT7::Remote> remote(
 #line 121 "User/xrobot.yaml"
+  static BMI088 bmi088_0(
+#line 124 "User/xrobot.yaml"
+      spi2, BMI088_ACC_CS, BMI088_GYRO_CS, BMI088_GYRO_INT, pwm_tim3_ch4,
+#line 129 "User/xrobot.yaml"
+      BMI088::GyroFreq::GYRO_2000HZ_BW230HZ, BMI088::AcclFreq::ACCL_1600HZ,
+#line 131 "User/xrobot.yaml"
+      BMI088::GyroRange::DEG_2000DPS, BMI088::AcclRange::ACCL_6G, xr_bmi088_0_rotation,
+#line 134 "User/xrobot.yaml"
+      xr_bmi088_0_pid_param, "bmi088_gyro", "bmi088_accl", 50.0f, 2048);
+#line 148 "User/xrobot_main.hpp"
+
+  // remote: scu-hotpot/RemoteControl<Module::Remote::DT7::Remote> (User/xrobot.yaml:146)
+#line 146 "User/xrobot.yaml"
+  static RemoteControl<Module::Remote::DT7::Remote> remote(
+#line 151 "User/xrobot.yaml"
       uart5, "/remote", 1024, LibXR::Thread::Priority::MEDIUM);
-#line 131 "User/xrobot_main.hpp"
-
-  // fri_left: scu-hotpot/DJIMotor (User/xrobot.yaml:125)
-#line 125 "User/xrobot.yaml"
-  static DJIMotor fri_left(1, DJIMotor::MotorType::M3508, 1.0f, 0.0f,
-#line 132 "User/xrobot.yaml"
-                           "/fb/motor/fri_left", "/torque/fri_left", 100);
-#line 138 "User/xrobot_main.hpp"
-
-  // fri_right: scu-hotpot/DJIMotor (User/xrobot.yaml:135)
-#line 135 "User/xrobot.yaml"
-  static DJIMotor fri_right(2, DJIMotor::MotorType::M3508, 1.0f, 0.0f,
-#line 142 "User/xrobot.yaml"
-                            "/fb/motor/fri_right", "/torque/fri_right", 100);
-#line 145 "User/xrobot_main.hpp"
-
-  // pluck: scu-hotpot/DJIMotor (User/xrobot.yaml:145)
-#line 145 "User/xrobot.yaml"
-  static DJIMotor pluck(3, DJIMotor::MotorType::M2006, 36.0f, 0.0f, "/fb/motor/pluck",
-#line 153 "User/xrobot.yaml"
-                        "/torque/pluck", 100);
-#line 152 "User/xrobot_main.hpp"
+#line 155 "User/xrobot_main.hpp"
 
   // referee_regular: scu-hotpot/RefereeSystem<RefereeProtocol::Link::Regular>
+  // (User/xrobot.yaml:155)
+#line 155 "User/xrobot.yaml"
   static RefereeSystem<RefereeProtocol::Link::Regular> referee_regular(usart1, 2048, 0);
-
-  // canmanager: scu-hotpot/CanManager (User/xrobot.yaml:83)
-#line 86 "User/xrobot.yaml"
-  static const std::initializer_list<CanManager::CANBus> xr_canmanager_can_buses = {
-#line 86 "User/xrobot.yaml"
-      CanManager::CANBus::Classic(fdcan1, {&yaw, &fri_left, &fri_right, &pluck}, "fdcan1"),
-#line 86 "User/xrobot.yaml"
-      CanManager::CANBus::Classic(fdcan3, {&pitch, &big_yaw}, "fdcan3"),
-#line 86 "User/xrobot.yaml"
-  };
-#line 83 "User/xrobot.yaml"
-  static CanManager canmanager(xr_canmanager_can_buses, 1, 1024,
-#line 89 "User/xrobot.yaml"
-                               LibXR::Thread::Priority::HIGH, true);
-#line 99 "User/xrobot_main.hpp"
+#line 161 "User/xrobot_main.hpp"
 
   for (;;)
   {
     pitch.OnMonitor();
     big_yaw.OnMonitor();
     yaw.OnMonitor();
+    fri_left.OnMonitor();
+    fri_right.OnMonitor();
+    pluck.OnMonitor();
     vqf.OnMonitor();
     canmanager.OnMonitor();
     bmi088_0.OnMonitor();
     remote.OnMonitor();
     referee_regular.OnMonitor();
-    fri_left.OnMonitor();
-    fri_right.OnMonitor();
-    pluck.OnMonitor();
     LibXR::Thread::Sleep(1000);
   }
 }
@@ -219,4 +224,4 @@
 // xrobot: depends "../Modules/scu-hotpot/VQFModule/Algorithm/VQF/detail/VQFCore.hpp"
 // xrobot: depends "../Modules/scu-hotpot/VQFModule/Algorithm/VQF/detail/VQFCore.tpp"
 // xrobot: depends "../Modules/scu-hotpot/VQFModule/VQFModule.hpp"
-// xrobot: digest 49b18e9fba6868b45bc7a387526b0162f83bb48a682971b963b1b507be00705b
+// xrobot: digest 2b37a3dcf67d98777c2fbf57c89b4659567508b02f0b376e75bd1756e45b2098
