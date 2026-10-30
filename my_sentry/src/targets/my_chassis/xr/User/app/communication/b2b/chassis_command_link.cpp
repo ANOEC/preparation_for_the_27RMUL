@@ -78,6 +78,7 @@ void ChassisCommandLink::OnFrame(bool, ChassisCommandLink* self,
         !std::isfinite(command.vx_mps) || !std::isfinite(command.vy_mps) ||
         !std::isfinite(command.wz_rad_per_sec) ||
         !std::isfinite(command.big_yaw_angle_rad) ||
+        !std::isfinite(command.big_yaw_velocity_rad_per_sec) ||
         !std::isfinite(command.yaw_angle_rad))
     {
       return;
@@ -189,6 +190,8 @@ void ChassisCommandLink::PollGimbalFeedback(std::uint32_t now_ms)
     const auto feedback = big_yaw_subscriber_.GetData();
     big_yaw_subscriber_.StartWaiting();
     transmit_command_.big_yaw_angle_rad = feedback.position_rad;
+    transmit_command_.big_yaw_velocity_rad_per_sec =
+        feedback.velocity_rad_per_sec;
     big_yaw_feedback_ms_ = now_ms;
     has_big_yaw_feedback_ = true;
   }

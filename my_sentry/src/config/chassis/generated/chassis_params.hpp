@@ -66,8 +66,9 @@ namespace param::chassis {
             float integral_limit = 0.0f;
             float kd = -4.0f;
             float ki = 0.0f;
-            float kp = -6.0f;
-            float max_output = 8.0f;
+            float kp = -10.0f;
+            float max_output = 13.0f;
+            float velocity_feedforward = 1.2f;
         };
         inline follow_t follow {};
 

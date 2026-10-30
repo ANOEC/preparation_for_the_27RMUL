@@ -87,6 +87,7 @@ class ChassisInputAdapter
     output.world_frame = false;
     output.follow_yaw_error =
         std::remainder(-input.big_yaw_angle_rad, 2.0f * std::numbers::pi_v<float>);
+    output.follow_yaw_velocity = input.big_yaw_velocity_rad_per_sec;
     return output;
   }
 
@@ -130,7 +131,9 @@ class ChassisInputAdapter
     return IsFresh(command_, now_ms, kCommandTimeoutMs) &&
            input.state != UserApp::Command::ControlState::OFFLINE &&
            std::isfinite(input.vx_mps) && std::isfinite(input.vy_mps) &&
-           std::isfinite(input.wz_rad_per_sec);
+           std::isfinite(input.wz_rad_per_sec) &&
+           std::isfinite(input.big_yaw_angle_rad) &&
+           std::isfinite(input.big_yaw_velocity_rad_per_sec);
   }
 
   static app::chassis::ChassisMode ConvertMode(

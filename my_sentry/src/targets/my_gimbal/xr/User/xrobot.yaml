@@ -41,6 +41,36 @@ modules:
       - topic_name: "/fb/motor/yaw"
       - torque_topic_name: "/torque/yaw"
       - command_timeout_ms: 100
+  - module: scu-hotpot/DJIMotor
+    id: fri_left
+    args:
+      - id: 1
+      - type: DJIMotor::MotorType::M3508
+      - actual_total_ratio: 1.0f
+      - init_pos_degree: 0.0f
+      - topic_name: "/fb/motor/fri_left"
+      - torque_topic_name: "/torque/fri_left"
+      - command_timeout_ms: 100
+  - module: scu-hotpot/DJIMotor
+    id: fri_right
+    args:
+      - id: 2
+      - type: DJIMotor::MotorType::M3508
+      - actual_total_ratio: 1.0f
+      - init_pos_degree: 0.0f
+      - topic_name: "/fb/motor/fri_right"
+      - torque_topic_name: "/torque/fri_right"
+      - command_timeout_ms: 100
+  - module: scu-hotpot/DJIMotor
+    id: pluck
+    args:
+      - id: 3
+      - type: DJIMotor::MotorType::M2006
+      - actual_total_ratio: 36.0f
+      - init_pos_degree: 0.0f
+      - topic_name: "/fb/motor/pluck"
+      - torque_topic_name: "/torque/pluck"
+      - command_timeout_ms: 100
   - module: scu-hotpot/VQFModule
     id: vqf
     template_args:
@@ -83,7 +113,7 @@ modules:
   - module: scu-hotpot/CanManager
     id: canmanager
     args:
-      - can_buses: '{CanManager::CANBus::Classic(fdcan1, {&yaw}, "fdcan1"), CanManager::CANBus::Classic(fdcan3, {&pitch, &big_yaw}, "fdcan3")}'
+      - can_buses: '{CanManager::CANBus::Classic(fdcan1, {&yaw, &fri_left, &fri_right, &pluck}, "fdcan1"), CanManager::CANBus::Classic(fdcan3, {&pitch, &big_yaw}, "fdcan3")}'
       - period_ms: 1
       - task_stack_depth: 1024
       - task_priority: LibXR::Thread::Priority::HIGH
@@ -122,35 +152,13 @@ modules:
       - topic_name: "/remote"
       - thread_stack: 1024
       - priority: LibXR::Thread::Priority::MEDIUM
-  - module: scu-hotpot/DJIMotor
-    id: fri_left
+  - module: scu-hotpot/RefereeSystem
+    id: referee_regular
+    template_args:
+      - RefereeProtocol::Link::Regular
     args:
-      - id: 1
-      - type: DJIMotor::MotorType::M3508
-      - actual_total_ratio: 1.0f
-      - init_pos_degree: 0.0f
-      - topic_name: "/fb/motor/fri_left"
-      - torque_topic_name: "/torque/fri_left"
-      - command_timeout_ms: 100
-  - module: scu-hotpot/DJIMotor
-    id: fri_right
-    args:
-      - id: 2
-      - type: DJIMotor::MotorType::M3508
-      - actual_total_ratio: 1.0f
-      - init_pos_degree: 0.0f
-      - topic_name: "/fb/motor/fri_right"
-      - torque_topic_name: "/torque/fri_right"
-      - command_timeout_ms: 100
-  - module: scu-hotpot/DJIMotor
-    id: pluck
-    args:
-      - id: 3
-      - type: DJIMotor::MotorType::M2006
-      - actual_total_ratio: 36.0f
-      - init_pos_degree: 0.0f
-      - topic_name: "/fb/motor/pluck"
-      - torque_topic_name: "/torque/pluck"
-      - command_timeout_ms: 100
+      - uart: usart1
+      - task_stack_depth: 2048
+      - local_robot_id: 0
 settings:
   monitor_sleep_ms: 1000

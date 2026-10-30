@@ -8,6 +8,7 @@
 #include "DJIMotor.hpp"
 #include "DMMotor.hpp"
 #include "RemoteControl.hpp"
+#include "RefereeSystem.hpp"
 #include "VQFModule.hpp"
 #include "libxr.hpp"
 #include "thread.hpp"
@@ -16,7 +17,7 @@
                                            LibXR::GPIO& BMI088_GYRO_CS,
                                            LibXR::GPIO& BMI088_GYRO_INT,
                                            LibXR::PWM& pwm_tim3_ch4, LibXR::SPI& spi2,
-                                           LibXR::UART& uart5, LibXR::FDCAN& fdcan1,
+                                           LibXR::UART& uart5, LibXR::UART& usart1, LibXR::FDCAN& fdcan1,
                                            LibXR::FDCAN& fdcan3)
 {
   // pitch: scu-hotpot/DMMotor (User/xrobot.yaml:2)
@@ -82,21 +83,6 @@
                               true);
 #line 84 "User/xrobot_main.hpp"
 
-  // canmanager: scu-hotpot/CanManager (User/xrobot.yaml:83)
-#line 86 "User/xrobot.yaml"
-  static const std::initializer_list<CanManager::CANBus> xr_canmanager_can_buses = {
-#line 86 "User/xrobot.yaml"
-      CanManager::CANBus::Classic(fdcan1, {&yaw}, "fdcan1"),
-#line 86 "User/xrobot.yaml"
-      CanManager::CANBus::Classic(fdcan3, {&pitch, &big_yaw}, "fdcan3"),
-#line 86 "User/xrobot.yaml"
-  };
-#line 83 "User/xrobot.yaml"
-  static CanManager canmanager(xr_canmanager_can_buses, 1, 1024,
-#line 89 "User/xrobot.yaml"
-                               LibXR::Thread::Priority::HIGH, true);
-#line 99 "User/xrobot_main.hpp"
-
   // bmi088_0: scu-hotpot/BMI088 (User/xrobot.yaml:91)
 #line 103 "User/xrobot.yaml"
   static const LibXR::Quaternion<float> xr_bmi088_0_rotation = {1.0f, 0.0f, 0.0f, 0.0f};
@@ -150,6 +136,24 @@
                         "/torque/pluck", 100);
 #line 152 "User/xrobot_main.hpp"
 
+  // referee_regular: scu-hotpot/RefereeSystem<RefereeProtocol::Link::Regular>
+  static RefereeSystem<RefereeProtocol::Link::Regular> referee_regular(usart1, 2048, 0);
+
+  // canmanager: scu-hotpot/CanManager (User/xrobot.yaml:83)
+#line 86 "User/xrobot.yaml"
+  static const std::initializer_list<CanManager::CANBus> xr_canmanager_can_buses = {
+#line 86 "User/xrobot.yaml"
+      CanManager::CANBus::Classic(fdcan1, {&yaw, &fri_left, &fri_right, &pluck}, "fdcan1"),
+#line 86 "User/xrobot.yaml"
+      CanManager::CANBus::Classic(fdcan3, {&pitch, &big_yaw}, "fdcan3"),
+#line 86 "User/xrobot.yaml"
+  };
+#line 83 "User/xrobot.yaml"
+  static CanManager canmanager(xr_canmanager_can_buses, 1, 1024,
+#line 89 "User/xrobot.yaml"
+                               LibXR::Thread::Priority::HIGH, true);
+#line 99 "User/xrobot_main.hpp"
+
   for (;;)
   {
     pitch.OnMonitor();
@@ -159,6 +163,7 @@
     canmanager.OnMonitor();
     bmi088_0.OnMonitor();
     remote.OnMonitor();
+    referee_regular.OnMonitor();
     fri_left.OnMonitor();
     fri_right.OnMonitor();
     pluck.OnMonitor();
@@ -170,7 +175,7 @@
 #define XR_REGISTER(name, ...) static_cast<void>(name)
 #define XROBOT_MAIN()                                                              \
   ::XRobotMain(BMI088_ACC_CS, BMI088_GYRO_CS, BMI088_GYRO_INT, pwm_tim3_ch4, spi2, \
-               uart5, fdcan1, fdcan3)
+               uart5, usart1, fdcan1, fdcan3)
 
 // xrobot: config "xrobot.yaml"
 // xrobot: depends "../xrobot.lock"
@@ -214,4 +219,4 @@
 // xrobot: depends "../Modules/scu-hotpot/VQFModule/Algorithm/VQF/detail/VQFCore.hpp"
 // xrobot: depends "../Modules/scu-hotpot/VQFModule/Algorithm/VQF/detail/VQFCore.tpp"
 // xrobot: depends "../Modules/scu-hotpot/VQFModule/VQFModule.hpp"
-// xrobot: digest 8d132543581c4db5e0374ce69ee1857561f434597a3650269e4b0738a4415fb0
+// xrobot: digest 49b18e9fba6868b45bc7a387526b0162f83bb48a682971b963b1b507be00705b

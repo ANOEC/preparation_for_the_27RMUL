@@ -36,6 +36,18 @@ add_custom_command(
 )
 add_custom_target(generate_gimbal_params ALL DEPENDS "${GIMBAL_PARAM_HEADER}")
 
+set(SHOOT_PARAM_TOML "${GIMBAL_CONFIG_DIR}/params/shoot.toml")
+set(SHOOT_PARAM_HEADER "${GIMBAL_CONFIG_DIR}/generated/shoot_params.hpp")
+add_custom_command(
+    OUTPUT "${SHOOT_PARAM_HEADER}"
+    COMMAND "${Python3_EXECUTABLE}" "${GIMBAL_PARAM_GENERATOR}"
+            "${SHOOT_PARAM_TOML}" "${SHOOT_PARAM_HEADER}"
+    DEPENDS "${GIMBAL_PARAM_GENERATOR}" "${SHOOT_PARAM_TOML}"
+    COMMENT "Generating shooter parameters from shoot.toml"
+    VERBATIM
+)
+add_custom_target(generate_shoot_params ALL DEPENDS "${SHOOT_PARAM_HEADER}")
+
 set(TASK_CONFIG_TOML "${GIMBAL_CONFIG_DIR}/params/task_config.toml")
 set(TASK_GENERATOR "${GIMBAL_CONFIG_DIR}/scripts/generate_task.py")
 set(TASK_GENERATED_DIR "${GIMBAL_CONFIG_DIR}/generated")
@@ -56,6 +68,7 @@ add_custom_target(generate_tasks ALL
 add_executable(${PROJECT_NAME})
 add_dependencies(${PROJECT_NAME}
     generate_gimbal_params
+    generate_shoot_params
     generate_tasks
 )
 target_sources(${PROJECT_NAME} PRIVATE
@@ -69,6 +82,9 @@ target_sources(${PROJECT_NAME} PRIVATE
     "${USER_DIR}/app/gimbal/task.cc"
     "${USER_DIR}/app/remote/remote.cpp"
     "${USER_DIR}/app/remote/task.cc"
+    "${USER_DIR}/app/shoot/control.cpp"
+    "${USER_DIR}/app/shoot/shoot.cpp"
+    "${USER_DIR}/app/shoot/task.cc"
     "${ROBOT_ROOT}/src/task/task_runtime.cpp"
     "${TASK_GENERATED_SOURCE}"
 )

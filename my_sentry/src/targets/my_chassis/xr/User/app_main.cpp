@@ -100,7 +100,7 @@ extern "C" void app_main(void)
 
   /* User Code Begin 3 */
   static UserApp::Buzzer::YouBuzzer you_buzzer(pwm_tim12_ch2);
-  you_buzzer.Play();
+  // you_buzzer.Play();
 
   UserApp::BoardLink::Initialize(fdcan3);
   all_tasks_start();

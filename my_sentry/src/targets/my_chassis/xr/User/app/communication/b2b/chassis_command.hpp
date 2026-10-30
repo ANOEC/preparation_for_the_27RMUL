@@ -31,6 +31,7 @@ struct ChassisCommand
   bool big_yaw_alive = false;
   bool yaw_alive = false;
   float big_yaw_angle_rad = 0.0F;
+  float big_yaw_velocity_rad_per_sec = 0.0F;
   float yaw_angle_rad = 0.0F;
 };
 

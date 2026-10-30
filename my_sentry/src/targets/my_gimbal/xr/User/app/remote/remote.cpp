@@ -7,17 +7,20 @@ namespace UserApp::Remote
 {
 
 Remote::Remote(const char* remote_topic_name, const char* gimbal_topic_name,
-               const char* chassis_topic_name, uint32_t offline_timeout_ms)
+               const char* chassis_topic_name, const char* shoot_topic_name,
+               uint32_t offline_timeout_ms)
     : offline_timeout_ms_(offline_timeout_ms),
       remote_subscriber_(
           LibXR::Topic::CreateTopic<RemoteData>(remote_topic_name)),
       gimbal_topic_(LibXR::Topic::CreateTopic<GimbalCommand>(gimbal_topic_name)),
       chassis_topic_(LibXR::Topic::CreateTopic<Command::ChassisCommand>(
-          chassis_topic_name))
+          chassis_topic_name)),
+      shoot_topic_(LibXR::Topic::CreateTopic<ShootCommand>(shoot_topic_name))
 {
   REQUIRE(remote_topic_name != nullptr);
   REQUIRE(gimbal_topic_name != nullptr);
   REQUIRE(chassis_topic_name != nullptr);
+  REQUIRE(shoot_topic_name != nullptr);
   REQUIRE(offline_timeout_ms_ > 0U);
   remote_subscriber_.StartWaiting();
 }
@@ -35,6 +38,7 @@ void Remote::Run(uint32_t now_ms)
       last_valid_ms_ = now_ms;
       command_ = BuildCommand(remote_data);
       chassis_command_ = BuildChassisCommand(remote_data);
+      shoot_command_ = BuildShootCommand(remote_data, command_.state);
     }
   }
 
@@ -43,11 +47,14 @@ void Remote::Run(uint32_t now_ms)
     command_ = BuildSafeCommand(ControlState::OFFLINE);
     chassis_command_ =
         Command::MakeSafeChassisCommand(Command::ControlState::OFFLINE);
+    shoot_command_ = BuildSafeShootCommand(ControlState::OFFLINE);
+    ResetShootLatch();
     has_valid_data_ = false;
   }
 
   gimbal_topic_.Publish(command_);
   chassis_topic_.Publish(chassis_command_);
+  shoot_topic_.Publish(shoot_command_);
 }
 
 bool Remote::IsRemoteDataValid(const RemoteData& data)
@@ -150,12 +157,70 @@ Command::ChassisCommand Remote::BuildChassisCommand(const RemoteData& data)
   return command;
 }
 
+ShootCommand Remote::BuildShootCommand(const RemoteData& data, ControlState state)
+{
+  if (state == ControlState::PROTECT || state == ControlState::OFFLINE)
+  {
+    ResetShootLatch();
+    return BuildSafeShootCommand(state);
+  }
+
+  const int16_t wheel = data.rc.ch[4];
+  bool feeder_on = false;
+
+  if (wheel <= FIRE_TOGGLE_PRESS_THRESHOLD)
+  {
+    if (friction_toggle_armed_)
+    {
+      friction_latched_ = !friction_latched_;
+      friction_toggle_armed_ = false;
+    }
+
+    // Never feed while the wheel is pulled backwards to toggle friction.
+    feeder_on = false;
+  }
+  else if (wheel > 0)
+  {
+    feeder_on = friction_latched_;
+  }
+  else
+  {
+    feeder_on = false;
+  }
+
+  if (wheel >= FIRE_TOGGLE_RELEASE_THRESHOLD)
+  {
+    friction_toggle_armed_ = true;
+  }
+
+  ShootCommand command{};
+  command.state = state;
+  command.friction_on = friction_latched_;
+  command.feeder_on = feeder_on;
+  return command;
+}
+
 GimbalCommand Remote::BuildSafeCommand(ControlState state)
 {
   GimbalCommand command{};
   command.state = state;
   command.enabled = false;
   return command;
+}
+
+ShootCommand Remote::BuildSafeShootCommand(ControlState state)
+{
+  ShootCommand command{};
+  command.state = state;
+  command.friction_on = false;
+  command.feeder_on = false;
+  return command;
+}
+
+void Remote::ResetShootLatch()
+{
+  friction_latched_ = false;
+  friction_toggle_armed_ = true;
 }
 
 bool Remote::IsTimedOut(uint32_t now_ms, uint32_t last_valid_ms) const

@@ -85,6 +85,8 @@ inline Chassis::Config MakeChassisConfig()
 
     config.follow_kp = param::chassis::pid::follow.kp;
     config.follow_kd = param::chassis::pid::follow.kd;
+    config.follow_velocity_feedforward =
+        param::chassis::pid::follow.velocity_feedforward;
     config.follow_output_limit = param::chassis::pid::follow.max_output;
     config.maximum_tilt_for_spin = param::chassis::param.stop_spin_angle;
 

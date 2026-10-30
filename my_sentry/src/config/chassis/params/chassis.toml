@@ -24,9 +24,10 @@ max_output = 6.0
 
 # 底盘方向跟随云台方向
 [[pid.follow]]
-kp = -6.0
+kp = -10.0
 kd = -4.0
-max_output = 8.0
+velocity_feedforward = 1.2
+max_output = 13.0
 
 # 控制底盘在 X 方向的平移速度
 [[pid.x]]

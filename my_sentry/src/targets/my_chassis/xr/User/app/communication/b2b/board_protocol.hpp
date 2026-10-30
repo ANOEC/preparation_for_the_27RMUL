@@ -65,6 +65,7 @@ inline Frame EncodeChassisCommand(const Command::ChassisCommand& command) noexce
   detail::WriteFloat(frame, 12U, command.wz_rad_per_sec);
   detail::WriteU32(frame, 16U, static_cast<std::uint32_t>(command.mode));
   detail::WriteU32(frame, 20U, static_cast<std::uint32_t>(command.state));
+  detail::WriteFloat(frame, 24U, command.big_yaw_velocity_rad_per_sec);
   detail::WriteFloat(frame, 36U, command.big_yaw_angle_rad);
   detail::WriteFloat(frame, 40U, command.yaw_angle_rad);
   return frame;
@@ -94,6 +95,7 @@ inline bool DecodeChassisCommand(std::span<const std::byte> frame,
   command.wz_rad_per_sec = detail::ReadFloat(frame, 12U);
   command.mode = static_cast<Command::ChassisMode>(mode);
   command.state = static_cast<Command::ControlState>(state);
+  command.big_yaw_velocity_rad_per_sec = detail::ReadFloat(frame, 24U);
   command.enabled = command.state == Command::ControlState::HAND ||
                     command.state == Command::ControlState::GAME;
   command.big_yaw_alive = big_yaw_alive != 0U;

@@ -28,3 +28,12 @@ parameters = ["nullptr", "nullptr", "nullptr"]
 delay_start = "IMMEDIATE"
 period_us = 1000
 
+[[tasks]]
+name = "shoot_task"
+priority = "HIGH"
+stack_size = 2048
+entry_function = "shoot_thread_entry"
+daemon_timeout_ms = 100
+parameters = ["nullptr", "nullptr", "nullptr"]
+delay_start = "IMMEDIATE"
+period_us = 1000

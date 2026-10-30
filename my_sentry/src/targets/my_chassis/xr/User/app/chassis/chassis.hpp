@@ -33,6 +33,7 @@ public:
         PowerControl::Config power {};
         float follow_kp = -6.0f;
         float follow_kd = -4.0f;
+        float follow_velocity_feedforward = 1.0f;
         float follow_output_limit = 8.0f;
         float spin_speed = 6.0f;
         float maximum_tilt_for_spin = 12.0f; // degrees
@@ -45,6 +46,7 @@ public:
         float vy = 0.0f;
         float wz = 0.0f;
         float follow_yaw_error = 0.0f;
+        float follow_yaw_velocity = 0.0f;
         ChassisVelocity force_feedforward {};
         ChassisMode mode = ChassisMode::Protect;
         bool world_frame = true;

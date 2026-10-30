@@ -104,7 +104,9 @@ const Chassis::Output& Chassis::update(float dt)
         const float error_delta = std::remainder(
             command_.follow_yaw_error - previous_follow_error_, 2.0f * kPi);
         target.wz = std::clamp(config_.follow_kp * command_.follow_yaw_error +
-                               config_.follow_kd * error_delta,
+                               config_.follow_kd * error_delta +
+                               config_.follow_velocity_feedforward *
+                                   command_.follow_yaw_velocity,
                                -config_.follow_output_limit, config_.follow_output_limit);
         previous_follow_error_ = command_.follow_yaw_error;
     } else if (output_.active_mode == ChassisMode::Spin) {
