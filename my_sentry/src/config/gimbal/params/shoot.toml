@@ -91,18 +91,18 @@ r_ = 150.0
 w0 = 200.0
 
 [[basic_param]]
-fri_basic_speed = 630.0
-pluck_basic_speed = 14.0
-pluck_reverse_speed = -0.35
-pluck_overload_effort = 0.38
-pluck_overload_check_time = 0.35
-pluck_reverse_time = 1.0
-fri_count_decline_vel = 605.0
-fri_count_rise_vel = 615.0
-shoot_heat_per = 10
-amount_pellet_per_round = 9
-pluck_reverse_angle = 15.0
-fri_ramp_rate = 3.0
+fri_basic_speed = 630.0  # 摩擦轮正常目标转速，rad/s
+pluck_basic_speed = 14.0  # 拨弹轮正常正转速度，rad/s
+pluck_reverse_speed = -0.35  # 卡弹后的反转速度，rad/s
+pluck_overload_effort = 0.38  # 判断拨弹电机堵转的力矩阈值，N·m
+pluck_overload_check_time = 0.35  # 超载持续多久才认为真卡弹，s
+pluck_reverse_time = 1.0  # 卡弹后反转持续时间，s
+fri_count_decline_vel = 605.0  # 摩擦轮“掉速”判定阈值，rad/s
+fri_count_rise_vel = 615.0  # 摩擦轮“恢复”判定阈值，rad/s
+shoot_heat_per = 10  # 每发弹丸增加多少枪口热量
+amount_pellet_per_round = 9  # 拨弹盘转一整圈对应多少发
+pluck_reverse_angle = 15.0  # 	位置模式卡弹后倒退角度，°
+fri_ramp_rate = 3.0  # 摩擦轮每个 1 ms 控制周期允许增加的转速
 
 fri_left_J = 2.44e-5
 fri_right_J = 2.45e-5

@@ -105,11 +105,9 @@ void Remote::ApplyGameOverrides(uint32_t now_ms)
     return;
   }
 
-  // steering_sentry gives navigation control of chassis velocity in GAME.
-  // Its Host maps nav linear_y -> target_vel[0] and linear_x -> target_vel[1].
   if (host_command_received_ &&
       static_cast<uint32_t>(now_ms - host_command_ms_) <= HOST_TIMEOUT_MS)
-  {
+  { // 根据实际情况调整
     chassis_command_.vx_mps = host_chassis_command_.linear_y;
     chassis_command_.vy_mps = host_chassis_command_.linear_x;
     chassis_command_.wz_rad_per_sec = host_chassis_command_.angular_z;

@@ -59,9 +59,6 @@ class Remote
   static constexpr float CHANNEL_FULL_SCALE = 660.0f;
   static constexpr float YAW_STEP_DEG = 0.6f;
   static constexpr float PITCH_STEP_DEG = 1.0f;
-  // Keep hysteresis between press and release so DT7 wheel jitter cannot
-  // toggle the friction wheels repeatedly.  Some transmitters only reach
-  // about -550 after calibration, so -580 is too strict in practice.
   static constexpr int16_t FIRE_TOGGLE_PRESS_THRESHOLD = -500;
   static constexpr int16_t FIRE_TOGGLE_RELEASE_THRESHOLD = -300;
 
