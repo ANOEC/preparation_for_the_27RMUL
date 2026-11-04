@@ -30,6 +30,12 @@ struct ChassisCommand
   bool enabled = false;
   bool big_yaw_alive = false;
   bool yaw_alive = false;
+  bool referee_alive = false;
+  std::uint8_t game_progress = 0;
+  std::uint16_t stage_remain_time_s = 0;
+  std::uint16_t current_hp = 0;
+  std::uint16_t chassis_power_limit_w = 0;
+  std::uint16_t buffer_energy_j = 0;
   float big_yaw_angle_rad = 0.0F;
   float big_yaw_velocity_rad_per_sec = 0.0F;
   float yaw_angle_rad = 0.0F;

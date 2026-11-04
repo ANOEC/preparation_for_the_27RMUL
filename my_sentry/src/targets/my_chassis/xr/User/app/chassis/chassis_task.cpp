@@ -69,7 +69,7 @@ class ChassisInputAdapter
   }
 
   [[nodiscard]] app::chassis::Chassis::Command MakeCommand(
-      std::uint32_t now_ms) const
+      std::uint32_t now_ms)
   {
     app::chassis::Chassis::Command output{};
     const auto& input = command_.value;
@@ -86,18 +86,57 @@ class ChassisInputAdapter
     const float translation_deviation =
         app::chassis::ReferenceTranslationDeviation(
             input.big_yaw_angle_rad, input.yaw_angle_rad, game_mode);
+    float requested_vx = input.vx_mps;
+    float requested_vy = input.vy_mps;
+    auto requested_mode = input.mode;
+
+    if (game_mode && input.referee_alive)
+    {
+      UpdateDamageSpin(input, now_ms);
+
+      // The 2026 protocol defines 4 as "in game" and 5 as settlement.
+      // Preserve the reference sentry's navigation gating for these values.
+      const bool navigation_allowed = input.game_progress == 0U ||
+                                      input.game_progress == 4U ||
+                                      input.game_progress == 5U;
+      if (!navigation_allowed)
+      {
+        requested_vx = 0.0F;
+        requested_vy = 0.0F;
+      }
+      else
+      {
+        requested_vx = -requested_vx;
+      }
+
+      if (requested_mode == UserApp::Command::ChassisMode::SPIN &&
+          !(input.game_progress == 0U ||
+            (input.game_progress == 4U &&
+             input.stage_remain_time_s < 410U)))
+      {
+        requested_mode = UserApp::Command::ChassisMode::FOLLOW;
+      }
+    }
+
     const auto body_translation = app::chassis::ReferenceTranslationToBody(
-        input.vx_mps, input.vy_mps, translation_deviation);
+        requested_vx, requested_vy, translation_deviation);
     output.vx = body_translation.vx;
     output.vy = body_translation.vy;
     output.wz = input.wz_rad_per_sec;
-    output.mode = ConvertMode(input.mode);
+    output.mode = ConvertMode(requested_mode);
     output.world_frame = false;
     // FOLLOW uses the negative relative angle; measured big-yaw velocity is
     // added as a same-direction feed-forward term by the chassis controller.
     output.follow_yaw_error =
         app::chassis::ReferenceFollowYawError(input.big_yaw_angle_rad);
     output.follow_yaw_velocity = input.big_yaw_velocity_rad_per_sec;
+    if (output.mode == app::chassis::ChassisMode::Spin)
+    {
+      const bool translating = std::hypot(requested_vx, requested_vy) > 1.0e-4F;
+      const bool high_speed = damage_spin_active_ && !translating &&
+          static_cast<std::uint32_t>(now_ms - damage_spin_start_ms_) <= 3000U;
+      output.wz = SpinSpeed(now_ms, high_speed);
+    }
     return output;
   }
 
@@ -106,6 +145,14 @@ class ChassisInputAdapter
   {
     app::chassis::Chassis::Feedback output{};
     output.command_link_online = CommandOnline(now_ms);
+    if (output.command_link_online)
+    {
+      output.referee_online = command_.value.referee_alive;
+      output.referee_power_limit =
+          static_cast<float>(command_.value.chassis_power_limit_w);
+      output.referee_buffer_energy =
+          static_cast<float>(command_.value.buffer_energy_j);
+    }
 
     for (std::size_t index = 0; index < motors_.size(); ++index)
     {
@@ -126,6 +173,54 @@ class ChassisInputAdapter
   }
 
  private:
+  void UpdateDamageSpin(const ChassisCommand& input, std::uint32_t now_ms)
+  {
+    if (input.current_hp > 0U)
+    {
+      if (hp_initialized_ && input.current_hp < previous_hp_)
+      {
+        damage_spin_active_ = true;
+        damage_spin_start_ms_ = now_ms;
+      }
+      previous_hp_ = input.current_hp;
+      hp_initialized_ = true;
+    }
+    if (damage_spin_active_ &&
+        static_cast<std::uint32_t>(now_ms - damage_spin_start_ms_) > 3000U)
+    {
+      damage_spin_active_ = false;
+    }
+  }
+
+  float SpinSpeed(std::uint32_t now_ms, bool high_speed)
+  {
+    if (!spin_initialized_ ||
+        static_cast<std::uint32_t>(now_ms - spin_change_ms_) >=
+            spin_hold_ms_)
+    {
+      // Deterministic xorshift avoids std::random_device on the MCU while
+      // retaining the reference ranges and 400-600 ms hold interval.
+      random_state_ ^= random_state_ << 13U;
+      random_state_ ^= random_state_ >> 17U;
+      random_state_ ^= random_state_ << 5U;
+      spin_hold_ms_ = 400U + random_state_ % 201U;
+      spin_base_ = static_cast<float>((high_speed ? 9U : 5U) +
+                                     ((random_state_ >> 8U) & 1U));
+      spin_change_ms_ = now_ms;
+      spin_initialized_ = true;
+    }
+
+    constexpr float kTwoPi = 2.0F * std::numbers::pi_v<float>;
+    const float time_s = static_cast<float>(now_ms) * 0.001F;
+    return spin_base_ +
+        0.7F * std::sin(kTwoPi * time_s /
+                        param::chassis::param.chassis_sin_period1) +
+        0.3F * std::sin(kTwoPi * time_s /
+                        param::chassis::param.chassis_sin_period2) +
+        0.6F * std::sin(kTwoPi * time_s /
+                        param::chassis::param.chassis_sin_period3);
+  }
+
   template <typename Data>
   static bool IsFresh(const InputSample<Data>& sample, std::uint32_t now_ms,
                       std::uint32_t timeout_ms)
@@ -240,6 +335,15 @@ class ChassisInputAdapter
   InputSample<ChassisCommand> command_{};
   std::array<InputSample<MotorFeedback>, 4> motors_{};
   InputSample<ImuOutput> imu_{};
+  std::uint16_t previous_hp_ = 0U;
+  bool hp_initialized_ = false;
+  bool damage_spin_active_ = false;
+  std::uint32_t damage_spin_start_ms_ = 0U;
+  std::uint32_t random_state_ = 0x6D2B79F5U;
+  std::uint32_t spin_change_ms_ = 0U;
+  std::uint32_t spin_hold_ms_ = 0U;
+  float spin_base_ = 5.0F;
+  bool spin_initialized_ = false;
 };
 
 class ChassisTorquePublisher

@@ -60,6 +60,7 @@ inline Frame EncodeChassisCommand(const Command::ChassisCommand& command) noexce
   static_assert(std::numeric_limits<float>::is_iec559);
 
   Frame frame{};
+  frame[0U] = static_cast<std::uint8_t>(command.referee_alive);
   frame[1U] = static_cast<std::uint8_t>(command.big_yaw_alive);
   frame[2U] = static_cast<std::uint8_t>(command.yaw_alive);
   detail::WriteFloat(frame, 4U, command.vx_mps);
@@ -67,7 +68,16 @@ inline Frame EncodeChassisCommand(const Command::ChassisCommand& command) noexce
   detail::WriteFloat(frame, 12U, command.wz_rad_per_sec);
   detail::WriteU32(frame, 16U, static_cast<std::uint32_t>(command.mode));
   detail::WriteU32(frame, 20U, static_cast<std::uint32_t>(command.state));
-  detail::WriteFloat(frame, 24U, command.big_yaw_velocity_rad_per_sec);
+  frame[24U] = command.game_progress;
+  frame[25U] = 0U;
+  frame[26U] = static_cast<std::uint8_t>(command.stage_remain_time_s & 0xFFU);
+  frame[27U] = static_cast<std::uint8_t>(command.stage_remain_time_s >> 8U);
+  frame[28U] = static_cast<std::uint8_t>(command.current_hp & 0xFFU);
+  frame[29U] = static_cast<std::uint8_t>(command.current_hp >> 8U);
+  frame[30U] = static_cast<std::uint8_t>(command.chassis_power_limit_w & 0xFFU);
+  frame[31U] = static_cast<std::uint8_t>(command.chassis_power_limit_w >> 8U);
+  frame[32U] = static_cast<std::uint8_t>(command.buffer_energy_j & 0xFFU);
+  frame[33U] = static_cast<std::uint8_t>(command.buffer_energy_j >> 8U);
   detail::WriteFloat(frame, 36U, command.big_yaw_angle_rad);
   detail::WriteFloat(frame, 40U, command.yaw_angle_rad);
   return frame;
@@ -83,11 +93,14 @@ inline bool DecodeChassisCommand(std::span<const std::byte> frame,
 
   const auto mode = detail::ReadU32(frame, 16U);
   const auto state = detail::ReadU32(frame, 20U);
+  const auto referee_alive = std::to_integer<std::uint8_t>(frame[0U]);
   const auto big_yaw_alive = std::to_integer<std::uint8_t>(frame[1U]);
   const auto yaw_alive = std::to_integer<std::uint8_t>(frame[2U]);
+  const auto game_progress = std::to_integer<std::uint8_t>(frame[24U]);
   if (mode > static_cast<std::uint32_t>(Command::ChassisMode::SPIN) ||
       state > static_cast<std::uint32_t>(Command::ControlState::GAME) ||
-      big_yaw_alive > 1U || yaw_alive > 1U)
+      referee_alive > 1U || big_yaw_alive > 1U || yaw_alive > 1U ||
+      game_progress > 5U)
   {
     return false;
   }
@@ -97,7 +110,21 @@ inline bool DecodeChassisCommand(std::span<const std::byte> frame,
   command.wz_rad_per_sec = detail::ReadFloat(frame, 12U);
   command.mode = static_cast<Command::ChassisMode>(mode);
   command.state = static_cast<Command::ControlState>(state);
-  command.big_yaw_velocity_rad_per_sec = detail::ReadFloat(frame, 24U);
+  command.referee_alive = referee_alive != 0U;
+  command.game_progress = game_progress;
+  command.stage_remain_time_s = static_cast<std::uint16_t>(
+      std::to_integer<std::uint8_t>(frame[26U]) |
+      (std::to_integer<std::uint8_t>(frame[27U]) << 8U));
+  command.current_hp = static_cast<std::uint16_t>(
+      std::to_integer<std::uint8_t>(frame[28U]) |
+      (std::to_integer<std::uint8_t>(frame[29U]) << 8U));
+  command.chassis_power_limit_w = static_cast<std::uint16_t>(
+      std::to_integer<std::uint8_t>(frame[30U]) |
+      (std::to_integer<std::uint8_t>(frame[31U]) << 8U));
+  command.buffer_energy_j = static_cast<std::uint16_t>(
+      std::to_integer<std::uint8_t>(frame[32U]) |
+      (std::to_integer<std::uint8_t>(frame[33U]) << 8U));
+  command.big_yaw_velocity_rad_per_sec = 0.0F;
   command.enabled = command.state == Command::ControlState::HAND ||
                     command.state == Command::ControlState::GAME;
   command.big_yaw_alive = big_yaw_alive != 0U;

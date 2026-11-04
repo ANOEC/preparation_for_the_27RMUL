@@ -21,6 +21,9 @@ ChassisCommandLink::ChassisCommandLink(
           "/fb/motor/yaw")),
       big_yaw_subscriber_(LibXR::Topic::CreateTopic<DMMotor::SolvedFeedback>(
           "/fb/motor/big_yaw")),
+      game_status_subscriber_("regular/cmd/0001/rx", &referee_domain_),
+      robot_status_subscriber_("regular/cmd/0201/rx", &referee_domain_),
+      power_heat_subscriber_("regular/cmd/0202/rx", &referee_domain_),
       imu_subscriber_(
           LibXR::Topic::CreateTopic<VqfOutput<float>>("vqf_output")),
       command_topic_(LibXR::Topic::CreateTopic<Command::ChassisCommand>(
@@ -43,6 +46,9 @@ ChassisCommandLink::ChassisCommandLink(
     command_subscriber_.StartWaiting();
     yaw_subscriber_.StartWaiting();
     big_yaw_subscriber_.StartWaiting();
+    game_status_subscriber_.StartWaiting();
+    robot_status_subscriber_.StartWaiting();
+    power_heat_subscriber_.StartWaiting();
   }
   else
   {
@@ -65,8 +71,6 @@ void ChassisCommandLink::Run(std::uint32_t now_ms)
 
 void ChassisCommandLink::RunGimbal(std::uint32_t now_ms)
 {
-  PollGimbalFeedback(now_ms);
-
   if (frame_subscriber_.Available())
   {
     const auto frame = frame_subscriber_.GetData();
@@ -105,6 +109,8 @@ void ChassisCommandLink::RunGimbal(std::uint32_t now_ms)
     transmit_command_ = command_subscriber_.GetData();
     command_subscriber_.StartWaiting();
   }
+  PollGimbalFeedback(now_ms);
+  PollReferee(now_ms);
 
   transmit_command_.yaw_alive =
       has_yaw_feedback_ &&
@@ -119,6 +125,57 @@ void ChassisCommandLink::RunGimbal(std::uint32_t now_ms)
 
   Send(BoardProtocol::kGimbalToChassisId,
        BoardProtocol::EncodeChassisCommand(transmit_command_));
+}
+
+void ChassisCommandLink::PollReferee(std::uint32_t now_ms)
+{
+  if (game_status_subscriber_.Available())
+  {
+    game_status_ = game_status_subscriber_.GetData();
+    game_status_subscriber_.StartWaiting();
+    game_status_ms_ = now_ms;
+    has_game_status_ = true;
+  }
+  if (robot_status_subscriber_.Available())
+  {
+    robot_status_ = robot_status_subscriber_.GetData();
+    robot_status_subscriber_.StartWaiting();
+    robot_status_ms_ = now_ms;
+    has_robot_status_ = true;
+  }
+  if (power_heat_subscriber_.Available())
+  {
+    power_heat_ = power_heat_subscriber_.GetData();
+    power_heat_subscriber_.StartWaiting();
+    power_heat_ms_ = now_ms;
+    has_power_heat_ = true;
+  }
+
+  constexpr std::uint32_t kGameStatusTimeoutMs = 2000U;
+  constexpr std::uint32_t kFastStatusTimeoutMs = 500U;
+  const bool game_fresh = has_game_status_ &&
+      static_cast<std::uint32_t>(now_ms - game_status_ms_) <=
+          kGameStatusTimeoutMs;
+  const bool robot_fresh = has_robot_status_ &&
+      static_cast<std::uint32_t>(now_ms - robot_status_ms_) <=
+          kFastStatusTimeoutMs;
+  const bool power_fresh = has_power_heat_ &&
+      static_cast<std::uint32_t>(now_ms - power_heat_ms_) <=
+          kFastStatusTimeoutMs;
+  transmit_command_.referee_alive = game_fresh && robot_fresh && power_fresh;
+  transmit_command_.game_progress = game_status_.game_progress;
+  transmit_command_.stage_remain_time_s = game_status_.stage_remain_time;
+  transmit_command_.current_hp = robot_status_.current_hp;
+  transmit_command_.chassis_power_limit_w = robot_status_.chassis_power_limit;
+  transmit_command_.buffer_energy_j = power_heat_.buffer_energy;
+  if (!transmit_command_.referee_alive)
+  {
+    transmit_command_.game_progress = 0U;
+    transmit_command_.stage_remain_time_s = 0U;
+    transmit_command_.current_hp = 0U;
+    transmit_command_.chassis_power_limit_w = 0U;
+    transmit_command_.buffer_energy_j = 0U;
+  }
 }
 
 void ChassisCommandLink::RunChassis(std::uint32_t now_ms)
@@ -163,7 +220,7 @@ void ChassisCommandLink::PollGimbalFeedback(std::uint32_t now_ms)
   {
     const auto feedback = yaw_subscriber_.GetData();
     yaw_subscriber_.StartWaiting();
-    transmit_command_.yaw_angle_rad = feedback.position_rad;
+    yaw_angle_rad_ = feedback.position_rad;
     yaw_feedback_ms_ = now_ms;
     has_yaw_feedback_ = true;
   }
@@ -172,12 +229,15 @@ void ChassisCommandLink::PollGimbalFeedback(std::uint32_t now_ms)
   {
     const auto feedback = big_yaw_subscriber_.GetData();
     big_yaw_subscriber_.StartWaiting();
-    transmit_command_.big_yaw_angle_rad = feedback.position_rad;
-    transmit_command_.big_yaw_velocity_rad_per_sec =
-        feedback.velocity_rad_per_sec;
+    big_yaw_angle_rad_ = feedback.position_rad;
+    big_yaw_velocity_rad_per_sec_ = feedback.velocity_rad_per_sec;
     big_yaw_feedback_ms_ = now_ms;
     has_big_yaw_feedback_ = true;
   }
+  transmit_command_.yaw_angle_rad = yaw_angle_rad_;
+  transmit_command_.big_yaw_angle_rad = big_yaw_angle_rad_;
+  transmit_command_.big_yaw_velocity_rad_per_sec =
+      big_yaw_velocity_rad_per_sec_;
 }
 
 void ChassisCommandLink::PollChassisImu(std::uint32_t now_ms)
