@@ -6,8 +6,6 @@
 #include "DMMotor.hpp"
 #include "VQFModule.hpp"
 #include "app/communication/b2b/board_protocol.hpp"
-#include "can.hpp"
-#include "spsc_queue.hpp"
 #include "topic.hpp"
 
 namespace UserApp::Communication
@@ -23,33 +21,32 @@ class ChassisCommandLink
   };
 
   explicit ChassisCommandLink(
-      LibXR::FDCAN& can, Role role,
+      Role role,
       const char* command_topic_name = "/cmd/chassis",
       const char* feedback_topic_name = "/fb/board/chassis",
+      const char* rx_frame_topic_name = "/b2b/rx",
+      const char* tx_frame_topic_name = "/b2b/tx",
       std::uint32_t receive_timeout_ms = 100U);
 
   void Run(std::uint32_t now_ms);
 
  private:
-  static void OnFrame(bool in_isr, ChassisCommandLink* self,
-                      const LibXR::FDCAN::FDPack& frame);
   void RunGimbal(std::uint32_t now_ms);
   void RunChassis(std::uint32_t now_ms);
   void PollGimbalFeedback(std::uint32_t now_ms);
   void PollChassisImu(std::uint32_t now_ms);
   void Send(std::uint32_t id, const BoardProtocol::Frame& payload);
 
-  LibXR::FDCAN& can_;
   Role role_;
   std::uint32_t receive_timeout_ms_;
+  LibXR::Topic::ASyncSubscriber<BoardProtocol::Frame> frame_subscriber_;
   LibXR::Topic::ASyncSubscriber<Command::ChassisCommand> command_subscriber_;
   LibXR::Topic::ASyncSubscriber<DJIMotor::SolvedFeedback> yaw_subscriber_;
   LibXR::Topic::ASyncSubscriber<DMMotor::SolvedFeedback> big_yaw_subscriber_;
   LibXR::Topic::ASyncSubscriber<VqfOutput<float>> imu_subscriber_;
   LibXR::Topic command_topic_;
   LibXR::Topic feedback_topic_;
-  LibXR::SPSCQueue<Command::ChassisCommand> command_queue_{4U};
-  LibXR::SPSCQueue<Command::ChassisFeedback> feedback_queue_{4U};
+  LibXR::Topic frame_tx_topic_;
   Command::ChassisCommand transmit_command_{};
   Command::ChassisCommand receive_command_{};
   Command::ChassisFeedback transmit_feedback_{};

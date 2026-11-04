@@ -1,4 +1,22 @@
+constexpr_includes:
+  - app/communication/b2b/board_protocol.hpp
+
 modules:
+  - module: scu-hotpot/BtoBOnCan
+    id: btob_board_link
+    template_args:
+      - UserApp::BoardProtocol::Frame
+      - UserApp::BoardProtocol::Frame
+      - 64
+    args:
+      - tx_id: UserApp::BoardProtocol::kGimbalToChassisId
+      - rx_id: UserApp::BoardProtocol::kChassisToGimbalId
+      - frame_type: LibXR::CAN::Type::STANDARD
+      - tx_endian: wire::Endian::Little
+      - rx_endian: wire::Endian::Little
+      - command_timeout_ms: 100
+      - rx_topic_name: "/b2b/rx"
+      - tx_topic_name: "/b2b/tx"
   - module: scu-hotpot/DMMotor
     id: pitch
     args:
@@ -113,7 +131,7 @@ modules:
   - module: scu-hotpot/CanManager
     id: canmanager
     args:
-      - can_buses: '{CanManager::CANBus::Classic(fdcan1, {&yaw, &fri_left, &fri_right, &pluck}, "fdcan1"), CanManager::CANBus::Classic(fdcan3, {&pitch, &big_yaw}, "fdcan3")}'
+      - can_buses: '{CanManager::CANBus::Classic(fdcan1, {&yaw, &fri_left, &fri_right, &pluck}, "fdcan1"), CanManager::CANBus::FD(fdcan2, {&btob_board_link}, "fdcan2"), CanManager::CANBus::Classic(fdcan3, {&pitch, &big_yaw}, "fdcan3")}'
       - period_ms: 1
       - task_stack_depth: 1024
       - task_priority: LibXR::Thread::Priority::HIGH

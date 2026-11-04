@@ -18,16 +18,18 @@ constexpr std::size_t kFrameSize = 64U;
 constexpr std::size_t kLegacyHostToSlavePayloadSize = 44U;
 constexpr std::size_t kLegacySlaveToHostPayloadSize = 40U;
 
-using Frame = std::array<std::byte, kFrameSize>;
+// Use uint8_t so the frame is directly supported by wire::Codec and can be
+// transported by BtoBOnCan without changing the existing 64-byte ABI.
+using Frame = std::array<std::uint8_t, kFrameSize>;
 
 namespace detail
 {
 inline void WriteU32(Frame& frame, std::size_t offset, std::uint32_t value) noexcept
 {
-  frame[offset] = static_cast<std::byte>(value & 0xFFU);
-  frame[offset + 1U] = static_cast<std::byte>((value >> 8U) & 0xFFU);
-  frame[offset + 2U] = static_cast<std::byte>((value >> 16U) & 0xFFU);
-  frame[offset + 3U] = static_cast<std::byte>((value >> 24U) & 0xFFU);
+  frame[offset] = static_cast<std::uint8_t>(value & 0xFFU);
+  frame[offset + 1U] = static_cast<std::uint8_t>((value >> 8U) & 0xFFU);
+  frame[offset + 2U] = static_cast<std::uint8_t>((value >> 16U) & 0xFFU);
+  frame[offset + 3U] = static_cast<std::uint8_t>((value >> 24U) & 0xFFU);
 }
 
 inline std::uint32_t ReadU32(std::span<const std::byte> frame,
@@ -58,8 +60,8 @@ inline Frame EncodeChassisCommand(const Command::ChassisCommand& command) noexce
   static_assert(std::numeric_limits<float>::is_iec559);
 
   Frame frame{};
-  frame[1U] = static_cast<std::byte>(command.big_yaw_alive);
-  frame[2U] = static_cast<std::byte>(command.yaw_alive);
+  frame[1U] = static_cast<std::uint8_t>(command.big_yaw_alive);
+  frame[2U] = static_cast<std::uint8_t>(command.yaw_alive);
   detail::WriteFloat(frame, 4U, command.vx_mps);
   detail::WriteFloat(frame, 8U, command.vy_mps);
   detail::WriteFloat(frame, 12U, command.wz_rad_per_sec);
@@ -109,7 +111,7 @@ inline Frame EncodeChassisFeedback(
     const Command::ChassisFeedback& feedback) noexcept
 {
   Frame frame{};
-  frame[0U] = static_cast<std::byte>(feedback.imu_alive);
+  frame[0U] = static_cast<std::uint8_t>(feedback.imu_alive);
   for (std::size_t index = 0; index < 3U; ++index)
   {
     detail::WriteFloat(frame, 4U + index * 4U,

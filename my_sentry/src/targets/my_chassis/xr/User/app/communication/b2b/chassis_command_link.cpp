@@ -2,18 +2,19 @@
 
 #include <algorithm>
 #include <cmath>
-#include <cstring>
 #include <span>
 
 namespace UserApp::Communication
 {
 
 ChassisCommandLink::ChassisCommandLink(
-    LibXR::FDCAN& can, Role role, const char* command_topic_name,
-    const char* feedback_topic_name, std::uint32_t receive_timeout_ms)
-    : can_(can),
-      role_(role),
+    Role role, const char* command_topic_name,
+    const char* feedback_topic_name, const char* rx_frame_topic_name,
+    const char* tx_frame_topic_name, std::uint32_t receive_timeout_ms)
+    : role_(role),
       receive_timeout_ms_(receive_timeout_ms),
+      frame_subscriber_(LibXR::Topic::CreateTopic<BoardProtocol::Frame>(
+          rx_frame_topic_name)),
       command_subscriber_(
           LibXR::Topic::CreateTopic<Command::ChassisCommand>(command_topic_name)),
       yaw_subscriber_(LibXR::Topic::CreateTopic<DJIMotor::SolvedFeedback>(
@@ -25,16 +26,20 @@ ChassisCommandLink::ChassisCommandLink(
       command_topic_(LibXR::Topic::CreateTopic<Command::ChassisCommand>(
           command_topic_name)),
       feedback_topic_(LibXR::Topic::CreateTopic<Command::ChassisFeedback>(
-          feedback_topic_name))
+          feedback_topic_name)),
+      frame_tx_topic_(LibXR::Topic::CreateTopic<BoardProtocol::Frame>(
+          tx_frame_topic_name))
 {
   REQUIRE(command_topic_name != nullptr);
   REQUIRE(feedback_topic_name != nullptr);
+  REQUIRE(rx_frame_topic_name != nullptr);
+  REQUIRE(tx_frame_topic_name != nullptr);
   REQUIRE(receive_timeout_ms_ > 0U);
 
-  std::uint32_t receive_id = BoardProtocol::kGimbalToChassisId;
+  frame_subscriber_.StartWaiting();
+
   if (role_ == Role::GIMBAL)
   {
-    receive_id = BoardProtocol::kChassisToGimbalId;
     command_subscriber_.StartWaiting();
     yaw_subscriber_.StartWaiting();
     big_yaw_subscriber_.StartWaiting();
@@ -44,9 +49,6 @@ ChassisCommandLink::ChassisCommandLink(
     imu_subscriber_.StartWaiting();
   }
 
-  const auto callback = LibXR::FDCAN::CallbackFD::Create(OnFrame, this);
-  can_.Register(callback, LibXR::CAN::Type::STANDARD,
-                LibXR::CAN::FilterMode::ID_RANGE, receive_id, receive_id);
 }
 
 void ChassisCommandLink::Run(std::uint32_t now_ms)
@@ -61,63 +63,33 @@ void ChassisCommandLink::Run(std::uint32_t now_ms)
   }
 }
 
-void ChassisCommandLink::OnFrame(bool, ChassisCommandLink* self,
-                                 const LibXR::FDCAN::FDPack& frame)
-{
-  if (self == nullptr || frame.type != LibXR::CAN::Type::STANDARD)
-  {
-    return;
-  }
-
-  const auto bytes = std::as_bytes(std::span(frame.data, frame.len));
-  if (self->role_ == Role::CHASSIS &&
-      frame.id == BoardProtocol::kGimbalToChassisId)
-  {
-    Command::ChassisCommand command{};
-    if (!BoardProtocol::DecodeChassisCommand(bytes, command) ||
-        !std::isfinite(command.vx_mps) || !std::isfinite(command.vy_mps) ||
-        !std::isfinite(command.wz_rad_per_sec) ||
-        !std::isfinite(command.big_yaw_angle_rad) ||
-        !std::isfinite(command.big_yaw_velocity_rad_per_sec) ||
-        !std::isfinite(command.yaw_angle_rad))
-    {
-      return;
-    }
-    static_cast<void>(self->command_queue_.Push(command));
-    return;
-  }
-
-  if (self->role_ == Role::GIMBAL &&
-      frame.id == BoardProtocol::kChassisToGimbalId)
-  {
-    Command::ChassisFeedback feedback{};
-    if (!BoardProtocol::DecodeChassisFeedback(bytes, feedback))
-    {
-      return;
-    }
-    for (std::size_t index = 0; index < 3U; ++index)
-    {
-      if (!std::isfinite(feedback.imu_acceleration_mps2[index]) ||
-          !std::isfinite(feedback.imu_gyro_rad_per_sec[index]) ||
-          !std::isfinite(feedback.imu_euler_rad[index]))
-      {
-        return;
-      }
-    }
-    static_cast<void>(self->feedback_queue_.Push(feedback));
-  }
-}
-
 void ChassisCommandLink::RunGimbal(std::uint32_t now_ms)
 {
   PollGimbalFeedback(now_ms);
 
-  Command::ChassisFeedback feedback{};
-  while (feedback_queue_.Pop(feedback) == LibXR::ErrorCode::OK)
+  if (frame_subscriber_.Available())
   {
-    receive_feedback_ = feedback;
-    last_feedback_ms_ = now_ms;
-    has_feedback_ = true;
+    const auto frame = frame_subscriber_.GetData();
+    frame_subscriber_.StartWaiting();
+    Command::ChassisFeedback feedback{};
+    const auto bytes = std::as_bytes(std::span(frame));
+    if (BoardProtocol::DecodeChassisFeedback(bytes, feedback))
+    {
+      bool valid = true;
+      for (std::size_t index = 0; index < 3U; ++index)
+      {
+        valid = valid &&
+                std::isfinite(feedback.imu_acceleration_mps2[index]) &&
+                std::isfinite(feedback.imu_gyro_rad_per_sec[index]) &&
+                std::isfinite(feedback.imu_euler_rad[index]);
+      }
+      if (valid)
+      {
+        receive_feedback_ = feedback;
+        last_feedback_ms_ = now_ms;
+        has_feedback_ = true;
+      }
+    }
   }
   if (!has_feedback_ ||
       static_cast<std::uint32_t>(now_ms - last_feedback_ms_) >
@@ -151,12 +123,23 @@ void ChassisCommandLink::RunGimbal(std::uint32_t now_ms)
 
 void ChassisCommandLink::RunChassis(std::uint32_t now_ms)
 {
-  Command::ChassisCommand next{};
-  while (command_queue_.Pop(next) == LibXR::ErrorCode::OK)
+  if (frame_subscriber_.Available())
   {
-    receive_command_ = next;
-    last_command_ms_ = now_ms;
-    has_command_ = true;
+    const auto frame = frame_subscriber_.GetData();
+    frame_subscriber_.StartWaiting();
+    Command::ChassisCommand command{};
+    const auto bytes = std::as_bytes(std::span(frame));
+    if (BoardProtocol::DecodeChassisCommand(bytes, command) &&
+        std::isfinite(command.vx_mps) && std::isfinite(command.vy_mps) &&
+        std::isfinite(command.wz_rad_per_sec) &&
+        std::isfinite(command.big_yaw_angle_rad) &&
+        std::isfinite(command.big_yaw_velocity_rad_per_sec) &&
+        std::isfinite(command.yaw_angle_rad))
+    {
+      receive_command_ = command;
+      last_command_ms_ = now_ms;
+      has_command_ = true;
+    }
   }
 
   if (!has_command_ ||
@@ -259,12 +242,12 @@ void ChassisCommandLink::PollChassisImu(std::uint32_t now_ms)
 void ChassisCommandLink::Send(std::uint32_t id,
                               const BoardProtocol::Frame& payload)
 {
-  LibXR::FDCAN::FDPack frame{};
-  frame.id = id;
-  frame.type = LibXR::CAN::Type::STANDARD;
-  frame.len = static_cast<std::uint8_t>(payload.size());
-  std::memcpy(frame.data, payload.data(), payload.size());
-  static_cast<void>(can_.AddMessage(frame));
+  const auto expected_id = role_ == Role::GIMBAL
+                               ? BoardProtocol::kGimbalToChassisId
+                               : BoardProtocol::kChassisToGimbalId;
+  REQUIRE(id == expected_id);
+  auto frame = payload;
+  frame_tx_topic_.Publish(frame);
 }
 
 }  // namespace UserApp::Communication

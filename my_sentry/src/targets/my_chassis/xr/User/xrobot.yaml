@@ -1,6 +1,22 @@
-constexpr_includes: []
+constexpr_includes:
+  - app/communication/b2b/board_protocol.hpp
 
 modules:
+  - module: scu-hotpot/BtoBOnCan
+    id: btob_board_link
+    template_args:
+      - UserApp::BoardProtocol::Frame
+      - UserApp::BoardProtocol::Frame
+      - 64
+    args:
+      - tx_id: UserApp::BoardProtocol::kChassisToGimbalId
+      - rx_id: UserApp::BoardProtocol::kGimbalToChassisId
+      - frame_type: LibXR::CAN::Type::STANDARD
+      - tx_endian: wire::Endian::Little
+      - rx_endian: wire::Endian::Little
+      - command_timeout_ms: 100
+      - rx_topic_name: "/b2b/rx"
+      - tx_topic_name: "/b2b/tx"
   - module: scu-hotpot/RTTLogger
     id: rtt_logger
     args: []
@@ -73,7 +89,7 @@ modules:
   - module: scu-hotpot/CanManager
     id: can_manager
     args:
-      - can_buses: '{CanManager::CANBus::Classic(fdcan2, {&chassis_motor1, &chassis_motor2, &chassis_motor3, &chassis_motor4}, "fdcan2")}'
+      - can_buses: '{CanManager::CANBus::Classic(fdcan2, {&chassis_motor1, &chassis_motor2, &chassis_motor3, &chassis_motor4}, "fdcan2"), CanManager::CANBus::FD(fdcan3, {&btob_board_link}, "fdcan3")}'
       - period_ms: 1
       - task_stack_depth: 1024
       - task_priority: LibXR::Thread::Priority::HIGH

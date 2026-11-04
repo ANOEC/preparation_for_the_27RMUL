@@ -142,7 +142,7 @@ extern "C" void app_main(void)
   XR_REGISTER(fdcan3, LibXR::FDCAN);
 
   /* User Code Begin 3 */
-  UserApp::BoardLink::Initialize(fdcan2);
+  UserApp::BoardLink::Initialize();
   UserApp::Debug::InitializeVofaPlus(usart10);
   UserApp::Host::Initialize(usb_otg_hs_cdc, usb_otg_hs_cdc2);
   all_tasks_start();

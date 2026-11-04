@@ -7,10 +7,10 @@ namespace
 UserApp::Communication::ChassisCommandLink* board_link = nullptr;
 }
 
-void UserApp::BoardLink::Initialize(LibXR::FDCAN& can)
+void UserApp::BoardLink::Initialize()
 {
   static Communication::ChassisCommandLink link(
-      can, Communication::ChassisCommandLink::Role::GIMBAL);
+      Communication::ChassisCommandLink::Role::GIMBAL);
   board_link = &link;
 }
 
