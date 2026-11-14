@@ -14,7 +14,7 @@ modules:
       - frame_type: LibXR::CAN::Type::STANDARD
       - tx_endian: wire::Endian::Little
       - rx_endian: wire::Endian::Little
-      - command_timeout_ms: 100
+      - command_timeout_ms: 1000
       - rx_topic_name: "/b2b/rx"
       - tx_topic_name: "/b2b/tx"
   - module: scu-hotpot/RTTLogger

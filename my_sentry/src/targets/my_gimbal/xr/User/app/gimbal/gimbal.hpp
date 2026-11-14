@@ -11,6 +11,7 @@
 #include "app/remote/remote.hpp"
 #include "topic.hpp"
 #include "wave/sine.hpp"
+#include "wave/triangle.hpp"
 
 namespace UserApp::Gimbal
 {
@@ -101,7 +102,7 @@ class Gimbal
   bool patrol_running_ = false;
   Wave::SineWaveGenerator pitch_position_test_wave_{};
   bool pitch_position_test_running_ = false;
-  Wave::SineWaveGenerator velocity_test_wave_{};
+  Wave::Triangle velocity_test_wave_{};
   bool velocity_test_running_ = false;
   uint32_t velocity_telemetry_ms_ = 0;
   float torque_test_requested_nm_ = 0.0f;

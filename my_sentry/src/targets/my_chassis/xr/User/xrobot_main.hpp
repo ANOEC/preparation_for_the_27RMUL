@@ -27,7 +27,7 @@
       UserApp::BoardProtocol::kChassisToGimbalId,
       UserApp::BoardProtocol::kGimbalToChassisId, LibXR::CAN::Type::STANDARD,
 #line 15 "User/xrobot.yaml"
-      wire::Endian::Little, wire::Endian::Little, 100, "/b2b/rx", "/b2b/tx");
+      wire::Endian::Little, wire::Endian::Little, 1000, "/b2b/rx", "/b2b/tx");
 #line 32 "User/xrobot_main.hpp"
 
   // rtt_logger: scu-hotpot/RTTLogger (User/xrobot.yaml:20)
@@ -216,4 +216,4 @@
 // xrobot: depends "../Modules/scu-hotpot/VQFModule/Algorithm/VQF/detail/VQFCore.hpp"
 // xrobot: depends "../Modules/scu-hotpot/VQFModule/Algorithm/VQF/detail/VQFCore.tpp"
 // xrobot: depends "../Modules/scu-hotpot/VQFModule/VQFModule.hpp"
-// xrobot: digest fd26054fb81c532542456a1680fa187a244a58d37b304adbf84edf7b73ffe098
+// xrobot: digest beae4d53490769d165a35571580c0a3addee403affa37fd984a4763e44777609

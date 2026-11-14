@@ -92,15 +92,20 @@ class Shoot
       power_heat_subscriber_;
   LibXR::Topic::ASyncSubscriber<RefereeProtocol::GameStatus>
       game_status_subscriber_;
+  LibXR::Topic::ASyncSubscriber<RefereeProtocol::ProjectileAllowance>
+      projectile_allowance_subscriber_;
   RefereeProtocol::RobotStatus robot_status_{};
   RefereeProtocol::PowerHeat power_heat_{};
   RefereeProtocol::GameStatus game_status_{};
+  RefereeProtocol::ProjectileAllowance projectile_allowance_{};
   uint32_t robot_status_last_ms_ = 0U;
   uint32_t power_heat_last_ms_ = 0U;
   uint32_t game_status_last_ms_ = 0U;
+  uint32_t projectile_allowance_last_ms_ = 0U;
   bool robot_status_alive_ = false;
   bool power_heat_alive_ = false;
   bool game_status_alive_ = false;
+  bool projectile_allowance_alive_ = false;
 
   LegacyPid fri_left_pid_{};
   LegacyPid fri_right_pid_{};

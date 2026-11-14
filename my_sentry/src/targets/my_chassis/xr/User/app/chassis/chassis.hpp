@@ -37,7 +37,7 @@ public:
         float follow_output_limit = 8.0f;
         float spin_speed = 6.0f;
         float maximum_tilt_for_spin = 12.0f; // degrees
-        bool require_imu = true;
+        bool require_imu = false;
         bool require_command_link = true;
     };
 

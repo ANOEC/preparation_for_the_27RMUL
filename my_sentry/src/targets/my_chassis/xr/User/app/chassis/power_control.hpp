@@ -19,13 +19,13 @@ public:
         float rls_initial_covariance = 100.0f;
         bool rls_enabled = true;
 
-        float referee_offline_power = 35.0f;
-        float cap_extra_power = 300.0f;
+        float referee_offline_power = 55.0f; // 裁判系统离线时限制
+        float cap_extra_power = 300.0f; // 超级电容最多额外提供的功率
         float referee_buffer_low = 50.0f;
         float referee_buffer_high = 60.0f;
         float cap_buffer_low = 30.0f;
         float cap_buffer_high = 230.0f;
-        float minimum_budget_ratio = 0.85f;
+        float minimum_budget_ratio = 0.85f; // 低缓冲时最低预算比例
         float low_buffer_gain = 2.0f; // W reduction per buffer unit below low.
         float cap_energy_scale = 250.0f;
         float cap_energy_joules = 2100.0f;

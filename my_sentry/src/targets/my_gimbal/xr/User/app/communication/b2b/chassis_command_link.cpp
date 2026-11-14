@@ -21,9 +21,15 @@ ChassisCommandLink::ChassisCommandLink(
           "/fb/motor/yaw")),
       big_yaw_subscriber_(LibXR::Topic::CreateTopic<DMMotor::SolvedFeedback>(
           "/fb/motor/big_yaw")),
-      game_status_subscriber_("regular/cmd/0001/rx", &referee_domain_),
-      robot_status_subscriber_("regular/cmd/0201/rx", &referee_domain_),
-      power_heat_subscriber_("regular/cmd/0202/rx", &referee_domain_),
+      game_status_subscriber_(
+          LibXR::Topic::CreateTopic<RefereeProtocol::GameStatus>(
+              "regular/cmd/0001/rx", &referee_domain_)),
+      robot_status_subscriber_(
+          LibXR::Topic::CreateTopic<RefereeProtocol::RobotStatus>(
+              "regular/cmd/0201/rx", &referee_domain_)),
+      power_heat_subscriber_(
+          LibXR::Topic::CreateTopic<RefereeProtocol::PowerHeat>(
+              "regular/cmd/0202/rx", &referee_domain_)),
       imu_subscriber_(
           LibXR::Topic::CreateTopic<VqfOutput<float>>("vqf_output")),
       command_topic_(LibXR::Topic::CreateTopic<Command::ChassisCommand>(

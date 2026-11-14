@@ -82,6 +82,8 @@ target_sources(${PROJECT_NAME} PRIVATE
     "${USER_DIR}/app/gimbal/task.cc"
     "${USER_DIR}/app/host/host.cpp"
     "${USER_DIR}/app/host/task.cc"
+    "${USER_DIR}/app/log/log.cpp"
+    "${USER_DIR}/app/log/task.cc"
     "${USER_DIR}/app/remote/remote.cpp"
     "${USER_DIR}/app/remote/task.cc"
     "${USER_DIR}/app/shoot/control.cpp"

@@ -71,6 +71,8 @@ target_sources(${PROJECT_NAME} PRIVATE
     "${USER_DIR}/app/chassis/power_control.cpp"
     "${USER_DIR}/app/chassis/wheel_controller.cpp"
     "${USER_DIR}/app/chassis/chassis_task.cpp"
+    "${USER_DIR}/app/log/log.cpp"
+    "${USER_DIR}/app/log/task.cc"
     "${ROBOT_ROOT}/src/task/task_runtime.cpp"
     "${TASK_GENERATED_SOURCE}"
 )

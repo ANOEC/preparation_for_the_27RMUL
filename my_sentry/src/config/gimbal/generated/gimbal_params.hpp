@@ -54,7 +54,7 @@ namespace param::gimbal {
             float V_integral_limit = 0.0f;
             float V_kd = 0.0f;
             float V_ki = 0.0f;
-            float V_kp = 1.08544921875f;
+            float V_kp = 1.18544921875f;
             float V_max_output = 2.223f;
         };
         inline yaw_t yaw {};
@@ -175,12 +175,12 @@ namespace param::gimbal {
     inline torque_test_t torque_test {};
 
     struct velocity_test_t {
-        float amplitude_rad_per_sec = 1.5f;
-        int axis = 2;
+        float amplitude_rad_per_sec = 0.6f;
+        int axis = 0;
         bool enabled = false;
-        float frequency_hz = 0.5f;
+        int frequency_hz = 8;
         float offset_rad_per_sec = 0.0f;
-        int telemetry_period_ms = 10;
+        int telemetry_period_ms = 2;
     };
     inline velocity_test_t velocity_test {};
 

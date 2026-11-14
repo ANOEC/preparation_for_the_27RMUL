@@ -27,7 +27,7 @@ class ChassisCommandLink
       const char* feedback_topic_name = "/fb/board/chassis",
       const char* rx_frame_topic_name = "/b2b/rx",
       const char* tx_frame_topic_name = "/b2b/tx",
-      std::uint32_t receive_timeout_ms = 100U);
+      std::uint32_t receive_timeout_ms = 1000U);
 
   void Run(std::uint32_t now_ms);
 

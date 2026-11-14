@@ -92,7 +92,8 @@ w0 = 200.0
 
 [[basic_param]]
 fri_basic_speed = 630.0  # 摩擦轮正常目标转速，rad/s
-pluck_basic_speed = 14.0  # 拨弹轮正常正转速度，rad/s
+ # pluck_basic_speed = 14.0
+pluck_basic_speed = 3.5  # 拨弹轮正常正转速度，rad/s
 pluck_reverse_speed = -0.35  # 卡弹后的反转速度，rad/s
 pluck_overload_effort = 0.38  # 判断拨弹电机堵转的力矩阈值，N·m
 pluck_overload_check_time = 0.35  # 超载持续多久才认为真卡弹，s

@@ -14,7 +14,7 @@ namespace param::shoot {
         float fri_left_J = 2.44e-05f;
         float fri_ramp_rate = 3.0f;
         float fri_right_J = 2.45e-05f;
-        float pluck_basic_speed = 14.0f;
+        float pluck_basic_speed = 3.5f;
         float pluck_overload_check_time = 0.35f;
         float pluck_overload_effort = 0.38f;
         float pluck_reverse_angle = 15.0f;

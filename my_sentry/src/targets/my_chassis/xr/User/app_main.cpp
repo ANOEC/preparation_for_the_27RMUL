@@ -16,8 +16,8 @@
 using namespace LibXR;
 
 /* User Code Begin 1 */
-#include "app/buzzer/you_buzzer.hpp"
 #include "app/communication/b2b/task.hpp"
+#include "app/log/log.hpp"
 #include "task_generated.hpp"
 
 /* User Code End 1 */
@@ -99,10 +99,8 @@ extern "C" void app_main(void)
   XR_REGISTER(fdcan3, LibXR::FDCAN);
 
   /* User Code Begin 3 */
-  static UserApp::Buzzer::YouBuzzer you_buzzer(pwm_tim12_ch2);
-  // you_buzzer.Play();
-
   UserApp::BoardLink::Initialize();
+  UserApp::Log::Initialize(pwm_tim12_ch2);
   all_tasks_start();
   
   /* User Code End 3 */

@@ -30,7 +30,7 @@ output_limit = 0.0        # 控制器输出限幅
 [[dual_pid.yaw]]
 P_kp = 16.0               # 位置环比例系数
 P_max_output = 16384.0    # 位置环输出限幅；当前值基本不限制速度目标
-V_kp = 1.08544921875      # 速度环比例系数
+V_kp = 1.18544921875      # 速度环比例系数
 V_max_output = 2.223      # 小 yaw 最大输出力矩，单位 N·m
 
 # 大 yaw（DM J4310）位置环和速度环参数。
@@ -87,15 +87,15 @@ amplitude = 7.5           # 巡逻摆幅，单位 °
 period = 1.0              # 完成一次往复运动的周期，单位 s
 offset = -22.5            # 巡逻中心相对零位的偏置，单位 °
 
-# 速度环正弦跟随测试。Pitch 测试会叠加重力补偿，仍受遥控器使能和反馈超时保护。
+# 速度环三角波跟随测试。Pitch 测试会叠加重力补偿，仍受遥控器使能和反馈超时保护。
 # axis: 0=小 yaw (GM6020), 1=大 yaw (DM J4310), 2=pitch (DM J4310)。
 [velocity_test]
 enabled = false
-axis = 2
-frequency_hz = 0.5
-amplitude_rad_per_sec = 1.5
+axis = 0
+frequency_hz = 8   # 频率
+amplitude_rad_per_sec = 0.6   # 幅度
 offset_rad_per_sec = 0.0
-telemetry_period_ms = 10
+telemetry_period_ms = 2
 
 # Pitch 纯力矩标定。启用后绕过位置环、速度环和重力补偿，另外两个轴输出零力矩。
 # VOFA+ 发送一次 `torque:目标力矩\n` 后锁存；发送新值或 torque:0 才会改变。
@@ -112,7 +112,7 @@ limit_margin_deg = 2.0           # 距机械限位的保护余量，单位 °
 enabled = false
 telemetry_period_ms = 10
 
-# 正常双环控制下的 Pitch 位置遥测。
+# 正常双环控制下的电机的位置遥测。
 [position_telemetry]
 enabled = true
 period_ms = 10

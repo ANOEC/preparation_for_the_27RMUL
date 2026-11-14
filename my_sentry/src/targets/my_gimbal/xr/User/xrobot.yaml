@@ -2,6 +2,10 @@ constexpr_includes:
   - app/communication/b2b/board_protocol.hpp
 
 modules:
+  - module: scu-hotpot/RTTLogger
+    id: rtt_logger
+    args: []
+
   - module: scu-hotpot/BtoBOnCan
     id: btob_board_link
     template_args:

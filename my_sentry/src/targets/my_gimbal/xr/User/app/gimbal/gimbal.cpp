@@ -85,6 +85,7 @@ Gimbal::Gimbal(uint32_t feedback_timeout_ms)
                               param::gimbal::dual_pid::pitch.P_ff);
   REQUIRE(param::gimbal::velocity_test.axis >= 0 &&
           param::gimbal::velocity_test.axis <= 2);
+  REQUIRE(param::gimbal::velocity_test.frequency_hz > 0.0f);
   REQUIRE(param::gimbal::velocity_test.telemetry_period_ms > 0);
   REQUIRE(!(param::gimbal::torque_test.enabled &&
             param::gimbal::velocity_test.enabled));
@@ -131,7 +132,7 @@ Gimbal::Gimbal(uint32_t feedback_timeout_ms)
               param::gimbal::patrol::pitch.offset * kDegreesToRadians) ==
           Wave::ErrorCode::OK);
   REQUIRE(velocity_test_wave_.setParam(
-              param::gimbal::velocity_test.frequency_hz,
+              1.0f / param::gimbal::velocity_test.frequency_hz,
               param::gimbal::velocity_test.amplitude_rad_per_sec,
               param::gimbal::velocity_test.offset_rad_per_sec) ==
           Wave::ErrorCode::OK);

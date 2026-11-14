@@ -108,8 +108,8 @@ void Remote::ApplyGameOverrides(uint32_t now_ms)
   if (host_command_received_ &&
       static_cast<uint32_t>(now_ms - host_command_ms_) <= HOST_TIMEOUT_MS)
   { // 根据实际情况调整
-    chassis_command_.vx_mps = host_chassis_command_.linear_y;
-    chassis_command_.vy_mps = host_chassis_command_.linear_x;
+    chassis_command_.vx_mps = host_chassis_command_.linear_x;
+    chassis_command_.vy_mps = host_chassis_command_.linear_y;
     chassis_command_.wz_rad_per_sec = host_chassis_command_.angular_z;
   }
   else
@@ -126,7 +126,35 @@ void Remote::ApplyGameOverrides(uint32_t now_ms)
       static_cast<uint32_t>(now_ms - game_status_ms_) <= REFEREE_TIMEOUT_MS &&
       game_status_.game_progress == 4U)
   {
-    chassis_command_.mode = Command::ChassisMode::SPIN;
+    chassis_command_.mode = Command::ChassisMode::FOLLOW;
+
+
+
+
+
+
+
+
+
+
+    // chassis_command_.mode = Command::ChassisMode::SPIN;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
     shoot_command_.friction_on = true;
   }
 }
@@ -255,7 +283,11 @@ ShootCommand Remote::BuildShootCommand(const RemoteData& data, ControlState stat
   }
   else if (wheel > 0)
   {
-    feeder_on = friction_latched_;
+    // During GAME the active-match override starts the friction wheels.  The
+    // operator's forward wheel movement may therefore request feeding without
+    // first toggling the manual friction latch.  Shoot still applies the full
+    // referee/heat/ammunition interlock before the feeder can move.
+    feeder_on = friction_latched_ || state == ControlState::GAME;
   }
   else
   {

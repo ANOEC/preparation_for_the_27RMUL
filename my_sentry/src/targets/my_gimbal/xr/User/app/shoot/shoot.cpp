@@ -33,7 +33,9 @@ Shoot::Shoot()
       pluck_torque_topic_(LibXR::Topic::CreateTopic<float>("/torque/pluck")),
       robot_status_subscriber_("regular/cmd/0201/rx", &referee_domain_),
       power_heat_subscriber_("regular/cmd/0202/rx", &referee_domain_),
-      game_status_subscriber_("regular/cmd/0001/rx", &referee_domain_)
+      game_status_subscriber_("regular/cmd/0001/rx", &referee_domain_),
+      projectile_allowance_subscriber_("regular/cmd/0208/rx",
+                                       &referee_domain_)
 {
   fri_left_pid_.SetParam(MakeLegacyPid(
       param::shoot::pid::fri_left.kp, param::shoot::pid::fri_left.ki,
@@ -79,6 +81,7 @@ Shoot::Shoot()
   robot_status_subscriber_.StartWaiting();
   power_heat_subscriber_.StartWaiting();
   game_status_subscriber_.StartWaiting();
+  projectile_allowance_subscriber_.StartWaiting();
 }
 
 void Shoot::Run(float dt_s, uint32_t now_ms)
@@ -208,6 +211,20 @@ void Shoot::ReceiveReferee(uint32_t now_ms)
   {
     game_status_alive_ = false;
   }
+
+  if (projectile_allowance_subscriber_.Available())
+  {
+    projectile_allowance_ = projectile_allowance_subscriber_.GetData();
+    projectile_allowance_subscriber_.StartWaiting();
+    projectile_allowance_last_ms_ = now_ms;
+    projectile_allowance_alive_ = true;
+  }
+  else if (projectile_allowance_alive_ &&
+           TimedOut(now_ms, projectile_allowance_last_ms_,
+                    REFEREE_TIMEOUT_MS))
+  {
+    projectile_allowance_alive_ = false;
+  }
 }
 
 void Shoot::UpdateMotorProtection(uint32_t now_ms)
@@ -263,6 +280,34 @@ void Shoot::UpdateReferences(float dt_s, uint32_t now_ms)
   float feeder_reference = 0.0f;
   FeederControlMode requested_mode = FeederControlMode::VELOCITY;
 
+
+
+
+
+
+
+
+
+  /////////////////////////////////////////////////////////
+  // const bool referee_shoot_ready =
+  //    robot_status_alive_ && power_heat_alive_ && game_status_alive_ &&
+  //    projectile_allowance_alive_ && game_status_.game_progress == 4U &&
+  //    robot_status_.power_management_shooter_output != 0U &&
+  //    projectile_allowance_.projectile_allowance_17mm > 0U;
+///////////////////////////////////////////////////////////////
+  const bool referee_shoot_ready = true;
+
+
+  // 发弹 测试时不需要裁判系统在线
+
+
+
+
+
+
+
+
+
   if (safe_state && !game_mode)
   {
     feeder_reference = command_.feeder_on
@@ -271,18 +316,18 @@ void Shoot::UpdateReferences(float dt_s, uint32_t now_ms)
     buff_shoot_active_ = false;
     buff_first_entry_ = true;
   }
-  else if (safe_state && game_mode)
+  else if (safe_state && game_mode && referee_shoot_ready)
   {
     if (command_.feeder_on)
     {
-      // Manual DT7 feeding has priority and remains available without vision.
+      // 手动发弹
       feeder_reference = param::shoot::basic_param.pluck_basic_speed;
       buff_shoot_active_ = false;
       buff_first_entry_ = true;
     }
     else if (host_fresh && command_.friction_on && vision_command_.fire == 1U)
     {
-      // Normal auto-aim continuous fire.
+      // 自动发弹
       feeder_reference = param::shoot::basic_param.pluck_basic_speed;
       last_buff_command_count_ = buff_command_.shoot_count;
       buff_completed_count_ = last_buff_command_count_;
@@ -371,7 +416,7 @@ void Shoot::UpdateReferences(float dt_s, uint32_t now_ms)
       feeder_reference = pluck_.feedback.position_rad;
   }
 
-  if (heat_stop_ && game_status_alive_ && game_status_.game_progress != 0U)
+  if (game_mode && (!referee_shoot_ready || heat_stop_))
   {
     if (feeder_controller_.Mode() == FeederControlMode::VELOCITY)
       feeder_reference = 0.0f;

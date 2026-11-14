@@ -21,6 +21,7 @@ using namespace LibXR;
 #include "app/communication/b2b/task.hpp"
 #include "app/debug/vofa_plus_libxr.hpp"
 #include "app/host/task.hpp"
+#include "app/log/log.hpp"
 #include "task_generated.hpp"
 /* User Code End 1 */
 
@@ -145,6 +146,7 @@ extern "C" void app_main(void)
   UserApp::BoardLink::Initialize();
   UserApp::Debug::InitializeVofaPlus(usart10);
   UserApp::Host::Initialize(usb_otg_hs_cdc, usb_otg_hs_cdc2);
+  UserApp::Log::Initialize(pwm_tim12_ch2);
   all_tasks_start();
   /* User Code End 3 */
   XROBOT_MAIN();

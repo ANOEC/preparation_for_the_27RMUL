@@ -18,3 +18,13 @@ parameters = ["nullptr", "nullptr", "nullptr"]
 delay_start = "IMMEDIATE"
 period_us = 1000
 
+[[tasks]]
+name = "log_task"
+priority = "LOW"
+stack_size = 4096
+entry_function = "log_thread_entry"
+daemon_timeout_ms = 500
+parameters = ["nullptr", "nullptr", "nullptr"]
+delay_start = "IMMEDIATE"
+period_us = 10000
+
